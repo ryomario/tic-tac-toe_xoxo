@@ -76,6 +76,10 @@
         var winner; // null, x, o
 
         var review_game; // true, false
+
+        // internal use
+
+        var currdialog;
         
         /**
          * cell_1: 'x'
@@ -129,6 +133,9 @@
          * @param {boolean} cancelonclickoutside control is dialog closed on click outide dialog, default false
          */
         $this.Dialog = function(message, button_text, button_callback, cancel_callback = null, cancelonclickoutside = false) {
+            if(currdialog)currdialog.close(true);
+            currdialog = false;
+
             if(!message)message = 'This is a dialog!';
             if(!button_text)button_text = 'Close';
             if(!button_callback)button_callback = DefaultDialogCallback;
@@ -149,6 +156,7 @@
 
                 console.log('dialog closed');
                 if(cancel_callback && typeof cancel_callback === 'function')cancel_callback(dialog);
+                currdialog = false;
             }
             dialog.addEventListener('close',HandleCloseDialog);
 
@@ -159,6 +167,10 @@
                         dialog.removeEventListener('close',HandleCloseDialog);
                         
                         dialog.close();
+
+                        setTimeout(()=>{
+                            parentelem.removeChild(dialog);
+                        },500);
                         dialog_btn.removeEventListener('click',ClickHandle);
                     }
                 } else {
@@ -174,11 +186,17 @@
             parentelem.appendChild(dialog);
             dialog.addEventListener('click', ClickHandle);
 
-            return {
+            currdialog = {
                 open: () => {
                     dialog.showModal();
-                }
+                },
+                close: (force = false) => {
+                    if(force)dialog.removeEventListener('close',HandleCloseDialog);
+                    dialog.close();
+                },
             }
+
+            return currdialog;
         }
         /**
          * 
