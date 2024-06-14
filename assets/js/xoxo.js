@@ -156,6 +156,8 @@
             var ClickHandle = function(e) {
                 if(e.target === dialog_btn) {
                     if(button_callback(dialog)){
+                        dialog.removeEventListener('close',HandleCloseDialog);
+                        
                         dialog.close();
                         dialog_btn.removeEventListener('click',ClickHandle);
                     }
