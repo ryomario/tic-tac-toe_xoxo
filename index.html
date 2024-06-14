@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
+    <title>Tic Tac Toe - xOxO</title>
+    <link rel="stylesheet" href="assets/css/style.css">
+    <script src="assets/js/xoxo.js"></script>
+</head>
+<body>
+    <div id="game" class="xoxo">
+        <div class="xoxo_title">tic tac toe - xoxo</div>
+        <div class="xoxo_board">
+            <div class="xoxo_cell xoxo_cell--1">
+                <div class="xoxo_cell_label xoxo_mark xoxo_mark--o"></div>
+            </div>
+            <div class="xoxo_cell xoxo_cell--2">
+                <div class="xoxo_mark xoxo_mark--x"></div>
+            </div>
+            <div class="xoxo_cell xoxo_cell--3">
+                <div class="xoxo_mark xoxo_mark--x"></div>
+            </div>
+            <div class="xoxo_cell xoxo_cell--4">
+                <div class="xoxo_cell_label xoxo_mark xoxo_mark--x"></div>
+            </div>
+            <div class="xoxo_cell xoxo_cell--5">
+                <div class="xoxo_cell_label xoxo_mark xoxo_mark--o"></div>
+            </div>
+            <div class="xoxo_cell xoxo_cell--6">
+                <div class="xoxo_mark xoxo_mark--o"></div>
+            </div>
+            <div class="xoxo_cell xoxo_cell--7">
+                <div class="xoxo_mark xoxo_mark--x"></div>
+            </div>
+            <div class="xoxo_cell xoxo_cell--8">
+                <div class="xoxo_cell_label xoxo_mark xoxo_mark--x"></div>
+            </div>
+            <div class="xoxo_cell xoxo_cell--9">
+                <div class="xoxo_mark xoxo_mark--o"></div>
+            </div>
+        </div>
+        <div class="xoxo_bar">
+            <button class="xoxo_btn">new game</button>
+        </div>
+        <dialog class="xoxo_endgame">
+            <div class="xoxo_endgame_msg">Draw!</div>
+            <button class="xoxo_btn">try again</button>
+        </dialog>
+    </div>
+
+    <script>
+        new xOxOGame('game',{
+            
+        });
+    </script>
+</body>
+</html>
