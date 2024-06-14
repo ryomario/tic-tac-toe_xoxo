@@ -5,8 +5,9 @@
      * @param {string|Array} classlist List of class name
      * @param {NamedNodeMap} attributes HTML Attributes
      * @param {CSSStyleDeclaration} styles CSS Styles
+     * @param {string} innerText text to be content of element
      */
-    function CreateNode(tagname, classes, attributes, styles) {
+    function CreateNode(tagname, classes, attributes, styles, innerText) {
         const el = document.createElement(tagname);
 
         if(classes){
@@ -15,6 +16,7 @@
         }
         if(attributes)Object.assign(el,attributes);
         if(styles)Object.assign(el.style, styles);
+        if(innerText)el.innerText = innerText;
 
         return el;
     }
@@ -67,8 +69,11 @@
             4,5,6,
             7,8,9,
         ];
+        const maxplayerturnhistory = 3; // helper for game mode 'continually'
 
         // variables
+
+        var gamemode; // normal, continually
 
         var currturn; // x, o
         var isrunning; // true, false
@@ -86,10 +91,14 @@
          * cell_2: 'o'
          */
         var boardmap = {};
+        var playersturnshistory = {};
 
         const elems = {
             title: CreateNode('div',['xoxo_title']),
+            options: CreateNode('div',['xoxo_options']),
             board: CreateNode('div',['xoxo_board']),
+
+            option_mode_input: CreateNode('select',['xoxo_option_input']),
 
             cell_1: CreateNode('div',['xoxo_cell','xoxo_cell--1']),
             cell_2: CreateNode('div',['xoxo_cell','xoxo_cell--2']),
@@ -108,6 +117,7 @@
         elems.title.textContent = 'TIC TAC TOE - XOXO';
 
         parentelem.appendChild(elems.title);
+        parentelem.appendChild(elems.options);
         parentelem.appendChild(elems.board);
         parentelem.appendChild(elems.bar);
 
@@ -123,6 +133,33 @@
 
         elems.btn_newgame.innerText = 'New game';
         elems.bar.appendChild(elems.btn_newgame);
+
+        // Handle options
+
+        const elem_option_mode = CreateNode('div',['xoxo_option']);
+        const elem_option_mode_label = CreateNode('div',['xoxo_option_label']);
+        elem_option_mode_label.textContent = 'Mode';
+        elems.option_mode_input.appendChild(CreateNode('option','',{value: 'normal'},null,'Normal'));
+        elems.option_mode_input.appendChild(CreateNode('option','',{value: 'continually'},null,'Continually'));
+
+        elem_option_mode.appendChild(elem_option_mode_label);
+        elem_option_mode.appendChild(elems.option_mode_input);
+        elems.options.appendChild(elem_option_mode);
+
+        // Handle game mode option change
+        function HandleGameModeOption(e) {
+            const new_gamemode = e.target.value;
+            if(['normal', 'continually'].findIndex(s => s == new_gamemode) === -1)throw Error(`Game mode '${new_gamemode}' is not applicable!`);
+
+            $this.Dialog('Change Game Mode must be RESTART the game!','Restart',(dialog) => {
+                gamemode = new_gamemode;
+                $this.NewGame();
+                return true;
+            },() => {
+                elems.option_mode_input.value = gamemode;
+            },true).open();
+        }
+        elems.option_mode_input.addEventListener('input', HandleGameModeOption);
 
         /**
          * 
@@ -221,7 +258,7 @@
          * @param {number|string|HTMLElement} mark 'o' or 'x'
          * @param {boolean} isLabel if true, added class _xoxo_cell_label_
          */
-        function SetCell(cell, mark, isLabel = true) {
+        function SetCell(cell, mark, isLabel = true, willbe_deleted = false) {
             if(typeof cell === 'number')cell = elems['cell_'+cell];
             else if(typeof cell === 'string')cell = elems[cell];
 
@@ -232,6 +269,7 @@
             const mark_el = CreateNode('div',['xoxo_mark']);
             if(mark)mark_el.classList.add('xoxo_mark--'+mark);
             if(isLabel)mark_el.classList.add('xoxo_cell_label');
+            if(willbe_deleted)mark_el.classList.add('xoxo_mark_will_deleted');
 
             cell.appendChild(mark_el);
         }
@@ -299,7 +337,12 @@
          * @param {boolean} updateui Control to update the interface or not
          */
         function MarkCurrentTurn(cell, updateui = true) {
-            if(typeof cell === 'number')cell = 'cell_'+cell;
+            let cell_num;
+            if(typeof cell === 'number') {
+                cell_num = cell;
+                cell = 'cell_'+cell;
+            } else if(typeof cell === 'string') cell_num = Number(cell.replace('cell_',''));
+
             if(typeof cell !== 'string')return console.warn('Cannot marking cell!');
 
             if(!isrunning){
@@ -312,12 +355,36 @@
 
             if(boardmap[cell])return console.warn('Cell already marked!');
 
+            // wrap for game mode 'continually'
+            if(gamemode == 'continually'){
+                // init if null
+                if(!playersturnshistory[currturn])playersturnshistory[currturn] = [];
+
+                const removed_turns = [];
+                // check if at max history count
+                while(playersturnshistory[currturn].length >= maxplayerturnhistory) {
+                    removed_turns.push(playersturnshistory[currturn].shift());
+                }
+
+                // add to history
+                playersturnshistory[currturn].push(cell_num);
+                
+                // remove mapped mark that removed from history
+                for (const num of removed_turns) {
+                    boardmap['cell_'+num] = false;
+                }
+            }
+
+            // mapping the mark
             boardmap[cell] = currturn;
 
+            // change to next turn
             ChangeTurn();
 
+            // check state
             CheckGameState();
             
+            // update ui
             if(updateui){
                 $this.RefreshDOM();
             }
@@ -362,6 +429,9 @@
         elems.btn_newgame.addEventListener('click', HandleButtonNewGameClick);
 
         $this.RefreshDOM = function() {
+            // refresh options value
+            elems.option_mode_input.value = gamemode;
+
 
             boardnums.forEach(num => {
                 let mark = currturn;
@@ -371,7 +441,14 @@
                     islabel = false;
                 }
 
-                SetCell(num, mark, islabel);
+                let willbe_removed = false;
+                if(gamemode == 'continually'){
+                    if(playersturnshistory[mark] && playersturnshistory[mark].length >= maxplayerturnhistory){
+                        willbe_removed = num == playersturnshistory[mark][0];
+                    }
+                }
+
+                SetCell(num, mark, islabel, willbe_removed);
             });
 
             if(!isrunning) {
@@ -405,12 +482,16 @@
             }
         }
         $this.NewGame = async function() {
+            // don't reset current options
+            if(!gamemode)gamemode = 'normal';
+
             isrunning = true;
             isdraw = false;
             winner = null;
             review_game = false;
             currturn = GetRandomPlayer();
             boardmap = {};
+            playersturnshistory = {};
 
             $this.RefreshDOM();
         }

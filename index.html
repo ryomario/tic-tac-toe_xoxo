@@ -12,12 +12,21 @@
 <body>
     <div id="game" class="xoxo">
         <div class="xoxo_title">tic tac toe - xoxo</div>
+        <div class="xoxo_options">
+            <div class="xoxo_option">
+                <div class="xoxo_option_label">Mode</div>
+                <select class="xoxo_option_input">
+                    <option value="normal">Normal</option>
+                    <option value="continually">Continually</option>
+                </select>
+            </div>
+        </div>
         <div class="xoxo_board">
             <div class="xoxo_cell xoxo_cell--1">
                 <div class="xoxo_cell_label xoxo_mark xoxo_mark--o"></div>
             </div>
             <div class="xoxo_cell xoxo_cell--2">
-                <div class="xoxo_mark xoxo_mark--x"></div>
+                <div class="xoxo_mark xoxo_mark--x xoxo_mark_will_deleted"></div>
             </div>
             <div class="xoxo_cell xoxo_cell--3">
                 <div class="xoxo_mark xoxo_mark--x"></div>
