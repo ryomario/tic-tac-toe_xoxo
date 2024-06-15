@@ -371,6 +371,11 @@
             while(node && node !== elems.board)node = node.parentNode;
             if(node !== elems.board)return;
 
+            // check if cliked the label
+            node = e.target;
+            while(node && node.classList && !node.classList.contains('xoxo_cell_label'))node = node.parentNode;
+            if(!node.classList || !node.classList.contains('xoxo_cell_label'))return;
+
             // get the clicked cell
             const cell = e.target.closest('.xoxo_cell');
             // check if clicked cell is exist, do samething for get the cell num
@@ -497,7 +502,7 @@
                     if(onchange)onchange(option_menus.value,val_el.value);
                 }
             }
-            elem_option_select.addEventListener('click',HandleClickOption);
+            elem_option_select.addEventListener('mousedown',HandleClickOption);
             
             elem_option.appendChild(elem_option_label);
             elem_option.appendChild(elem_option_select);
