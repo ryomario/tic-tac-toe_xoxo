@@ -85,6 +85,16 @@
         // internal use
 
         var currdialog;
+        var statusmap = {};
+        const getterstatusmap = {
+            'gamemode': (str) => str? str.replace(
+                /\w\S*/g,
+                function(txt) {
+                  return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
+                }
+            ):'-',
+            'next-turn': (value) => value? CreateNode('div','xoxo_mark xoxo_mark--'+value):'-',
+        }
         
         /**
          * cell_1: 'x'
@@ -95,9 +105,8 @@
 
         const elems = {
             title: CreateNode('div',['xoxo_title']),
+            topbar: CreateNode('div',['xoxo_topbar']),
             board: CreateNode('div',['xoxo_board']),
-
-            option_mode_input: CreateNode('select',['xoxo_option_input']),
 
             cell_1: CreateNode('div',['xoxo_cell','xoxo_cell--1']),
             cell_2: CreateNode('div',['xoxo_cell','xoxo_cell--2']),
@@ -116,6 +125,7 @@
         elems.title.textContent = 'TIC TAC TOE - XOXO';
 
         parentelem.appendChild(elems.title);
+        parentelem.appendChild(elems.topbar);
         parentelem.appendChild(elems.board);
         parentelem.appendChild(elems.bar);
 
@@ -131,6 +141,36 @@
 
         elems.btn_newgame.innerText = 'New game';
         elems.bar.appendChild(elems.btn_newgame);
+
+        function SetNamedStatusBar(name, value, label){
+            if(!value)value = '';
+            if(getterstatusmap[name] && typeof getterstatusmap[name] === 'function')value = getterstatusmap[name](value);
+
+            if(typeof value === 'string' || typeof value === 'number')value = CreateNode('span',null,null,null,value);
+            if(!(value instanceof HTMLElement))throw Error('Status bar not HTMLElement');
+
+            if(!label)label = name;
+
+            if(!statusmap[name]){
+                const status_el = CreateNode('div','xoxo_status');
+                const status_label_el = CreateNode('div','xoxo_status_label');
+                const status_value_el = CreateNode('div','xoxo_status_value');
+                elems.topbar.appendChild(status_el);
+                status_el.appendChild(status_label_el);
+                status_el.appendChild(CreateNode('div','xoxo_status_sep',null,null,':'));
+                status_el.appendChild(status_value_el);
+                status_label_el.innerText = label;
+
+                statusmap[name] = status_value_el;
+            } else {
+                while(statusmap[name].firstChild)statusmap[name].removeChild(statusmap[name].lastChild);
+            }
+
+            statusmap[name].appendChild(value);
+        }
+
+        SetNamedStatusBar('gamemode',gamemode,'Game Mode');
+        SetNamedStatusBar('next-turn',currturn,'Next Turn');
 
         /**
          * 
@@ -405,8 +445,9 @@
         elems.btn_newgame.addEventListener('click', HandleButtonNewGameClick);
 
         $this.RefreshDOM = function() {
-            // refresh options value
-            elems.option_mode_input.value = gamemode;
+            // refresh status value
+            SetNamedStatusBar('gamemode',gamemode,'Game Mode');
+            SetNamedStatusBar('next-turn',currturn,'Next Turn');
 
 
             boardnums.forEach(num => {
