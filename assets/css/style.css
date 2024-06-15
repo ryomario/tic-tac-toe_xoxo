@@ -47,25 +47,39 @@ body {
 }
 .xoxo_option {
     display: inline-flex;
-    align-items: center;
+    align-items: baseline;
 }
 .xoxo_option_label {
     margin-right: 1em;
 }
 .xoxo_option_input {
+    overflow-y: auto;
     font-size: inherit;
     color: inherit;
-    border: 1px solid var(--box-color);
+    border: 0;
     background-color: transparent;
     outline: none;
     cursor: pointer;
+}
+.xoxo_option_input .xoxo_option_value {
+    display: block;
+    text-align: start;
     padding: 0.25em 0.5em;
     opacity: 0.8;
     transition: opacity 200ms linear;
+    color: inherit;
 }
-.xoxo_option_input:hover {
+.xoxo_option_input:hover .xoxo_option_value {
     opacity: 1;
 }
+.xoxo_option_input .xoxo_option_value::before {
+    content: '\0003E\000A0';
+    visibility: hidden;
+}
+.xoxo_option_input .xoxo_option_value.checked::before {
+    visibility: visible;
+}
+
 
 .xoxo_board {
     display: grid;

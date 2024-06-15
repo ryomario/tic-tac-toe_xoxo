@@ -95,7 +95,6 @@
 
         const elems = {
             title: CreateNode('div',['xoxo_title']),
-            options: CreateNode('div',['xoxo_options']),
             board: CreateNode('div',['xoxo_board']),
 
             option_mode_input: CreateNode('select',['xoxo_option_input']),
@@ -117,7 +116,6 @@
         elems.title.textContent = 'TIC TAC TOE - XOXO';
 
         parentelem.appendChild(elems.title);
-        parentelem.appendChild(elems.options);
         parentelem.appendChild(elems.board);
         parentelem.appendChild(elems.bar);
 
@@ -133,33 +131,6 @@
 
         elems.btn_newgame.innerText = 'New game';
         elems.bar.appendChild(elems.btn_newgame);
-
-        // Handle options
-
-        const elem_option_mode = CreateNode('div',['xoxo_option']);
-        const elem_option_mode_label = CreateNode('div',['xoxo_option_label']);
-        elem_option_mode_label.textContent = 'Mode';
-        elems.option_mode_input.appendChild(CreateNode('option','',{value: 'normal'},null,'Normal'));
-        elems.option_mode_input.appendChild(CreateNode('option','',{value: 'continually'},null,'Continually'));
-
-        elem_option_mode.appendChild(elem_option_mode_label);
-        elem_option_mode.appendChild(elems.option_mode_input);
-        elems.options.appendChild(elem_option_mode);
-
-        // Handle game mode option change
-        function HandleGameModeOption(e) {
-            const new_gamemode = e.target.value;
-            if(['normal', 'continually'].findIndex(s => s == new_gamemode) === -1)throw Error(`Game mode '${new_gamemode}' is not applicable!`);
-
-            $this.Dialog('Change Game Mode must be RESTART the game!','Restart',(dialog) => {
-                gamemode = new_gamemode;
-                $this.NewGame();
-                return true;
-            },() => {
-                elems.option_mode_input.value = gamemode;
-            },true).open();
-        }
-        elems.option_mode_input.addEventListener('input', HandleGameModeOption);
 
         /**
          * 
@@ -230,6 +201,9 @@
                 close: (force = false) => {
                     if(force)dialog.removeEventListener('close',HandleCloseDialog);
                     dialog.close();
+                },
+                appendChildToMessage: (node) => {
+                    if(node && node instanceof HTMLElement)dialog_msg.appendChild(node);
                 },
             }
 
@@ -421,10 +395,7 @@
         function HandleButtonNewGameClick(e) {
             if(!e.isTrusted)return;
             
-            $this.Dialog('Start New Game?', 'Start', ()=>{
-                $this.NewGame();
-                return true;
-            }).open();
+            $this.NewGameDialog();
         }
         elems.btn_newgame.addEventListener('click', HandleButtonNewGameClick);
 
@@ -471,7 +442,7 @@
                     content += 'Draw!';
                 }
                 $this.Dialog(content,'New Game', (dialog) => {
-                    $this.NewGame();
+                    $this.NewGameDialog();
                     return true;
                 },(dialog) => {
                     review_game = true;
@@ -481,9 +452,10 @@
                 elems.board.title = '';
             }
         }
-        $this.NewGame = async function() {
+        $this.NewGame = function(options = {}) {
             // don't reset current options
             if(!gamemode)gamemode = 'normal';
+            if(options && options['gamemode'])gamemode = options['gamemode'];
 
             isrunning = true;
             isdraw = false;
@@ -495,13 +467,91 @@
 
             $this.RefreshDOM();
         }
+        function CreateOptionInput(option_menus, defaultvalue, onchange) {
+            const elem_option = CreateNode('div',['xoxo_option']);
+            const elem_option_label = CreateNode('div',['xoxo_option_label']);
+            const elem_option_select = CreateNode('div',['xoxo_option_input']);
+            elem_option_select.dataset.optid = option_menus.value;
+            
+            elem_option_label.innerHTML = option_menus.label;
+            for (const input_opt of option_menus.inputs) {
+                const elem_option_opt = CreateNode('div','xoxo_option_value',{value: input_opt.value},null,input_opt.label);
+                if(defaultvalue == input_opt.value)elem_option_opt.classList.add('checked');
+                elem_option_select.appendChild(elem_option_opt);
+            }
+
+            function HandleClickOption(e) {
+                if(!e.isTrusted)return;
+
+                let node = e.target;
+                while(node && node !== elem_option_select)node = node.parentNode;
+
+                if(node !== elem_option_select)return;
+
+                const val_el = e.target.closest('.xoxo_option_value');
+                elem_option_select.querySelectorAll('.xoxo_option_value').forEach(el => el.classList.remove('checked'));
+                val_el.classList.add('checked');
+
+                if(elem_option_select.value !== val_el.value){
+                    elem_option_select.value = val_el.value;
+                    if(onchange)onchange(option_menus.value,val_el.value);
+                }
+            }
+            elem_option_select.addEventListener('click',HandleClickOption);
+            
+            elem_option.appendChild(elem_option_label);
+            elem_option.appendChild(elem_option_select);
+
+            return elem_option;
+        }
+        $this.NewGameDialog = function(cancelable = false, cancel_callback = null) {
+            const options_menus = {
+                'gamemode': {
+                    label: 'Mode',
+                    inputs: [
+                        {
+                            label: 'Normal',
+                            value: 'normal',
+                        },
+                        {
+                            label: 'Continually',
+                            value: 'continually',
+                        }
+                    ]
+                }
+            };
+            const options = {
+                'gamemode': gamemode ?? 'normal'
+            };
+            const dialog_newgame = $this.Dialog('Start New Game!', 'Start', ()=>{
+                $this.NewGame(options);
+                return true;
+            },cancel_callback,cancelable);
+
+            const elem_contianer_options = CreateNode('div',['xoxo_options']);
+
+            for (const value in options_menus) {
+                const option_menus = options_menus[value];
+                option_menus.value = value;
+                const elem_option = CreateOptionInput(option_menus, options[value],HandleGameModeOption);
+                elem_contianer_options.appendChild(elem_option);
+            }
+            
+            // Handle game mode option change
+            function HandleGameModeOption(opt_name, opt_selected) {
+                if(options_menus[opt_name].inputs.findIndex(s => s.value == opt_selected) === -1)throw Error(`Option '${opt_selected}' is not available!`);
+
+                options[opt_name] = opt_selected;
+            }
+            
+            elem_contianer_options.addEventListener('input', HandleGameModeOption);
+
+            dialog_newgame.appendChildToMessage(elem_contianer_options);
+            dialog_newgame.open();
+        }
         
         
         
-        $this.NewGame();
-        // $this.Dialog('Start New Game!', 'Start', ()=>{
-        //     $this.NewGame();
-        //     return true;
-        // }).open();
+        $this.NewGameDialog();
     }
 })()
