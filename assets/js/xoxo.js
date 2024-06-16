@@ -42,6 +42,85 @@
 
     window.xOxOGame = xOxOGame;
 
+    /**
+     * 
+     * @param {GameState} state old state
+     * @returns GameState
+     */
+    function GameState(state) {
+        if(!(this instanceof GameState)) return new GameState(state);
+        
+        const $this = this;
+
+        $this.turn = "";
+        $this.board = [];
+        $this.result = "running";
+        $this.turnHistory = {};
+        
+        $this.Reset = function() {
+            $this.turn = "";
+            $this.board = [];
+            $this.result = "running";
+            $this.turnHistory = {};
+
+            for (let num = 1; num <= 9; num++) {
+                $this.board[num] = 'e';
+            }
+        }
+        $this.Reset();
+
+        if(state instanceof GameState) {
+            let len = state.board.length;
+            $this.board = new Array(len);
+            for (let idx = 0; idx < len; idx++) {
+                $this.board[idx] = state.board[idx];
+            }
+
+            $this.result = state.result;
+            $this.turn = state.turn;
+        }
+
+        $this.ChangeTurn = function() {
+            $this.turn = $this.turn === 'x' ? 'o' : 'x';
+        }
+
+        $this.EmptyCells = function() {
+            const indexs = [];
+            for (let index = 1; index <= 9; index++) {
+                if($this.board[index] === 'e') {
+                    indexs.push(index);
+                }
+            }
+            return indexs;
+        }
+
+        $this.IsTerminal = function() {
+            const players_state = [];
+            for (let num = 1; num <= 9; num++) {
+                for (const player of ['x','o']) {
+                    if($this.board[num] === player){
+                        if(!players_state[player])players_state[player] = [];
+                        players_state[player].push(num);
+                    }
+                }
+            }
+
+            for (const player of ['o','x']) {
+                if(players_state[player] && CheckWinState(players_state[player])){
+                    $this.result = player + '-won';
+                    return true;
+                }
+            }
+
+            const available_move = $this.EmptyCells();
+            if(available_move.length == 0) {
+                $this.result = 'draw';
+                return true;
+            }
+            return false;
+        }
+    }
+
     function xOxOGame(containerId, options) {
         if(!(this instanceof xOxOGame)) return new xOxOGame(containerId, options);
 
@@ -64,21 +143,13 @@
         // constant
 
         const players = ['x','o'];
-        const boardnums = [
-            1,2,3,
-            4,5,6,
-            7,8,9,
-        ];
         const maxplayerturnhistory = 3; // helper for game mode 'continually'
 
         // variables
 
         var gamemode; // normal, continually
 
-        var currturn; // x, o
-        var isrunning; // true, false
-        var isdraw; // true, false
-        var winner; // null, x, o
+        const currstate = new GameState();
 
         var review_game; // true, false
 
@@ -95,13 +166,6 @@
             ):'-',
             'next-turn': (value) => value? CreateNode('div','xoxo_mark xoxo_mark--'+value):'-',
         }
-        
-        /**
-         * cell_1: 'x'
-         * cell_2: 'o'
-         */
-        var boardmap = {};
-        var playersturnshistory = {};
 
         const elems = {
             title: CreateNode('div',['xoxo_title']),
@@ -170,7 +234,7 @@
         }
 
         SetNamedStatusBar('gamemode',gamemode,'Game Mode');
-        SetNamedStatusBar('next-turn',currturn,'Next Turn');
+        SetNamedStatusBar('next-turn',currstate.turn,'Next Turn');
 
         /**
          * 
@@ -294,72 +358,22 @@
         function GetCellMap(cell) {
             if(typeof cell !== 'number')throw Error('Cell index "'+cell+'" not a number!');
 
-            if(!boardmap)throw Error('Internal error: Board not mapped!');
+            if(!currstate.board)throw Error('Internal error: Board not mapped!');
 
-            const map = boardmap['cell_'+cell];
+            const map = currstate.board[cell];
 
-            return map ?? false;
-        }
-        function ChangeTurn() {
-            let nextidx = 0;
-            let curridx = players.findIndex(p => p === currturn);
-            
-            if(curridx >= 0 && curridx < players.length - 1)nextidx = curridx + 1;
-
-            currturn = players[nextidx];
-        }
-        function CheckGameState() {
-            const players_states = {};
-            for (const num of boardnums) {
-                for (const player of players) {
-                    if(boardmap['cell_'+num] === player){
-                        if(!players_states[player])players_states[player] = [];
-                        players_states[player].push(num);
-                    }
-                }
-            }
-
-            winner = false;
-            for (const player of players) {
-                if(players_states[player] && CheckWinState(players_states[player])){
-                    winner = player;
-                    break;
-                }
-            }
-
-            if(winner !== false){
-                // got win
-                isrunning = false;
-            } else {
-                // check if no more available move
-                let available_move = 0;
-                for (const num of boardnums) {
-                    if(!boardmap['cell_'+num])available_move += 1;
-                }
-
-                // no available move, draw
-                if(available_move === 0) {
-                    isrunning = false;
-                    isdraw = true;
-                }
-            }
+            return map;
         }
 
         /**
          * 
-         * @param {number|string} cell Indicating a cell index for map
+         * @param {number} cell Indicating a cell index for map
          * @param {boolean} updateui Control to update the interface or not
          */
         function MarkCurrentTurn(cell, updateui = true) {
-            let cell_num;
-            if(typeof cell === 'number') {
-                cell_num = cell;
-                cell = 'cell_'+cell;
-            } else if(typeof cell === 'string') cell_num = Number(cell.replace('cell_',''));
+            if(typeof cell !== 'number')throw Error('Cell is not number!');
 
-            if(typeof cell !== 'string')return console.warn('Cannot marking cell!');
-
-            if(!isrunning){
+            if(currstate.IsTerminal()){
                 if(updateui){
                     $this.RefreshDOM();
                 }
@@ -367,36 +381,33 @@
                 return console.warn('Game is already ended, start New Game instead!');
             }
 
-            if(boardmap[cell])return console.warn('Cell already marked!');
+            if(currstate.board[cell] !== 'e')return console.warn('Cell already marked!');
 
             // wrap for game mode 'continually'
             if(gamemode == 'continually'){
                 // init if null
-                if(!playersturnshistory[currturn])playersturnshistory[currturn] = [];
+                if(!currstate.turnHistory[currstate.turn])currstate.turnHistory[currstate.turn] = [];
 
                 const removed_turns = [];
                 // check if at max history count
-                while(playersturnshistory[currturn].length >= maxplayerturnhistory) {
-                    removed_turns.push(playersturnshistory[currturn].shift());
+                while(currstate.turnHistory[currstate.turn].length >= maxplayerturnhistory) {
+                    removed_turns.push(currstate.turnHistory[currstate.turn].shift());
                 }
 
                 // add to history
-                playersturnshistory[currturn].push(cell_num);
+                currstate.turnHistory[currstate.turn].push(cell);
                 
                 // remove mapped mark that removed from history
                 for (const num of removed_turns) {
-                    boardmap['cell_'+num] = false;
+                    currstate.board[num] = 'e';
                 }
             }
 
             // mapping the mark
-            boardmap[cell] = currturn;
+            currstate.board[cell] = currstate.turn;
 
             // change to next turn
-            ChangeTurn();
-
-            // check state
-            CheckGameState();
+            currstate.ChangeTurn();
             
             // update ui
             if(updateui){
@@ -420,7 +431,7 @@
             const cell = e.target.closest('.xoxo_cell');
             // check if clicked cell is exist, do samething for get the cell num
             let isexist = 0;
-            for (const num of boardnums) {
+            for (let num = 1; num <= 9; num++) {
                 if(cell === elems['cell_' + num]){
                     isexist = num;
                     break;
@@ -447,28 +458,28 @@
         $this.RefreshDOM = function() {
             // refresh status value
             SetNamedStatusBar('gamemode',gamemode,'Game Mode');
-            SetNamedStatusBar('next-turn',currturn,'Next Turn');
+            SetNamedStatusBar('next-turn',currstate.turn,'Next Turn');
 
 
-            boardnums.forEach(num => {
-                let mark = currturn;
+            for(let num = 1; num <= 9; num++) {
+                let mark = currstate.turn;
                 let islabel = true;
-                if(GetCellMap(num) !== false){
+                if(GetCellMap(num) !== 'e'){
                     mark = GetCellMap(num);
                     islabel = false;
                 }
 
                 let willbe_removed = false;
                 if(gamemode == 'continually'){
-                    if(playersturnshistory[mark] && playersturnshistory[mark].length >= maxplayerturnhistory){
-                        willbe_removed = num == playersturnshistory[mark][0];
+                    if(currstate.turnHistory[mark] && currstate.turnHistory[mark].length >= maxplayerturnhistory){
+                        willbe_removed = num == currstate.turnHistory[mark][0];
                     }
                 }
 
                 SetCell(num, mark, islabel, willbe_removed);
-            });
+            }
 
-            if(!isrunning) {
+            if(currstate.IsTerminal() && currstate.result !== 'running') {
                 // diable board event
                 parentelem.classList.add('xoxo_gameover');
                 elems.board.title = 'Game is already ended!';
@@ -479,10 +490,10 @@
                     content += `<p>Game already ended!</p>`;
                 }
 
-                if(!isdraw){
+                if(currstate.result !== 'draw'){
                     content += 'The winner';
                     content += `
-                    <div class="xoxo_cell"><div class="xoxo_mark xoxo_mark--${winner}"></div></div>
+                    <div class="xoxo_cell"><div class="xoxo_mark xoxo_mark--${currstate.result.charAt(0)}"></div></div>
                     `;
                 } else {
                     content += 'Draw!';
@@ -501,15 +512,14 @@
         $this.NewGame = function(options = {}) {
             // don't reset current options
             if(!gamemode)gamemode = 'normal';
+            if(!gametype)gametype = 'vshuman';
             if(options && options['gamemode'])gamemode = options['gamemode'];
+            if(options && options['gametype'])gametype = options['gametype'];
 
-            isrunning = true;
-            isdraw = false;
-            winner = null;
             review_game = false;
-            currturn = GetRandomPlayer();
-            boardmap = {};
-            playersturnshistory = {};
+            
+            currstate.Reset();
+            currstate.turn = GetRandomPlayer();
 
             $this.RefreshDOM();
         }
@@ -564,10 +574,10 @@
                             value: 'continually',
                         }
                     ]
-                }
+                },
             };
             const options = {
-                'gamemode': gamemode ?? 'normal'
+                'gamemode': gamemode ?? 'normal',
             };
             const dialog_newgame = $this.Dialog('Start New Game!', 'Start', ()=>{
                 $this.NewGame(options);
