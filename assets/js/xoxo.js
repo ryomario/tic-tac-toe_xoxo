@@ -53,12 +53,14 @@
         const $this = this;
 
         $this.turn = "";
+        $this.moveCounts = {};
         $this.board = [];
         $this.result = "running";
         $this.turnHistory = {};
         
         $this.Reset = function() {
             $this.turn = "";
+            $this.moveCounts = {};
             $this.board = [];
             $this.result = "running";
             $this.turnHistory = {};
@@ -144,10 +146,13 @@
 
         const players = ['x','o'];
         const maxplayerturnhistory = 3; // helper for game mode 'continually'
+        const aimark = 'o'; // helper for game type 'vsai'
+        const playermark = 'x'; // helper for game type 'vsai'
 
         // variables
 
         var gamemode; // normal, continually
+        var gametype; // vshuman, vsai
 
         const currstate = new GameState();
 
@@ -156,15 +161,50 @@
         // internal use
 
         var currdialog;
+
+        const options_menus = {
+            'gamemode': {
+                label: 'Mode',
+                inputs: [
+                    {
+                        label: 'Normal',
+                        value: 'normal',
+                    },
+                    {
+                        label: 'Continually',
+                        value: 'continually',
+                    }
+                ]
+            },
+            'gametype': {
+                label: 'Type',
+                inputs: [
+                    {
+                        label: 'Vs. Human',
+                        value: 'vshuman',
+                    },
+                    {
+                        label: 'Vs. AI',
+                        value: 'vsai',
+                    }
+                ]
+            },
+        };
         var statusmap = {};
         const getterstatusmap = {
-            'gamemode': (str) => str? str.replace(
-                /\w\S*/g,
-                function(txt) {
-                  return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
+            'gamemode': (str) => {
+                if(!str)return '-';
+                const [mode,type] = str.split(',');
+                if(!mode)return '-';
+                let result = '';
+                result += options_menus['gamemode'].inputs.find(i => i.value == mode).label ?? mode;
+                if(type){
+                    const typestr = options_menus['gametype'].inputs.find(i => i.value == type).label ?? type;
+                    result += ' (' + typestr + ')';
                 }
-            ):'-',
-            'next-turn': (value) => value? CreateNode('div','xoxo_mark xoxo_mark--'+value):'-',
+                return result;
+            },
+            'next-turn': (value) => value? ((value == 'x' || value == 'o')?CreateNode('div','xoxo_mark xoxo_mark--'+value):value):'-',
         }
 
         const elems = {
@@ -370,7 +410,7 @@
          * @param {number} cell Indicating a cell index for map
          * @param {boolean} updateui Control to update the interface or not
          */
-        function MarkCurrentTurn(cell, updateui = true) {
+        function MarkCurrentTurn(cell, updateui = true, fromai = false) {
             if(typeof cell !== 'number')throw Error('Cell is not number!');
 
             if(currstate.IsTerminal()){
@@ -382,6 +422,8 @@
             }
 
             if(currstate.board[cell] !== 'e')return console.warn('Cell already marked!');
+
+            if(gametype === 'vsai' && currstate.turn === aimark && !fromai)return console.warn('Not your turn');
 
             // wrap for game mode 'continually'
             if(gamemode == 'continually'){
@@ -413,8 +455,20 @@
             if(updateui){
                 $this.RefreshDOM();
             }
+
+            if(gametype === 'vsai'){
+                if(currstate.turn === aimark){
+                    parentelem.classList.add('xoxo_aiturn');
+                    AITurn().then((cell) => {
+                        setTimeout(() => {
+                            if(cell !== false)MarkCurrentTurn(cell, true, true);
+                            parentelem.classList.remove('xoxo_aiturn');
+                        }, 300);
+                    });
+                }
+            }
         }
-        function HandleCellClick(e) {
+        async function HandleCellClick(e) {
             if(!e.isTrusted)return;
 
             // check if cliked inside board
@@ -455,10 +509,14 @@
         }
         elems.btn_newgame.addEventListener('click', HandleButtonNewGameClick);
 
-        $this.RefreshDOM = function() {
+        $this.RefreshDOM = async function() {
             // refresh status value
-            SetNamedStatusBar('gamemode',gamemode,'Game Mode');
-            SetNamedStatusBar('next-turn',currstate.turn,'Next Turn');
+            SetNamedStatusBar('gamemode',gamemode+','+gametype,'Game Mode');
+            if(gametype === 'vsai'){
+                SetNamedStatusBar('next-turn',currstate.turn == aimark ? 'AI turn' : 'Your turn','Next Turn');
+            } else {
+                SetNamedStatusBar('next-turn',currstate.turn,'Next Turn');
+            }
 
 
             for(let num = 1; num <= 9; num++) {
@@ -491,10 +549,16 @@
                 }
 
                 if(currstate.result !== 'draw'){
-                    content += 'The winner';
-                    content += `
-                    <div class="xoxo_cell"><div class="xoxo_mark xoxo_mark--${currstate.result.charAt(0)}"></div></div>
-                    `;
+                    const winner = currstate.result.charAt(0);
+                    if(gametype === 'vsai'){
+                        if(winner === playermark)content += 'You WIN from AI!!!';
+                        else content += 'You LOSE from AI!!!';
+                    } else {
+                        content += 'The winner';
+                        content += `
+                        <div class="xoxo_cell"><div class="xoxo_mark xoxo_mark--${winner}"></div></div>
+                        `;
+                    }
                 } else {
                     content += 'Draw!';
                 }
@@ -520,6 +584,7 @@
             
             currstate.Reset();
             currstate.turn = GetRandomPlayer();
+            if(gametype == 'vsai')currstate.turn = playermark;
 
             $this.RefreshDOM();
         }
@@ -561,23 +626,9 @@
             return elem_option;
         }
         $this.NewGameDialog = function(cancelable = false, cancel_callback = null) {
-            const options_menus = {
-                'gamemode': {
-                    label: 'Mode',
-                    inputs: [
-                        {
-                            label: 'Normal',
-                            value: 'normal',
-                        },
-                        {
-                            label: 'Continually',
-                            value: 'continually',
-                        }
-                    ]
-                },
-            };
             const options = {
                 'gamemode': gamemode ?? 'normal',
+                'gametype': gametype ?? 'vshuman',
             };
             const dialog_newgame = $this.Dialog('Start New Game!', 'Start', ()=>{
                 $this.NewGame(options);
@@ -606,8 +657,97 @@
             dialog_newgame.open();
         }
         
+        // AI Helper
+        function AIAction(pos) {
+            const $thisact = this;
+            $thisact.movePosition = pos;
+            $thisact.minimaxVal = 0;
+    
+            /**
+             * 
+             * @param {GameState} state 
+             */
+            $thisact.applyTo = function(state) {
+                const next = new GameState(state);
+    
+                next.board[$thisact.movePosition] = state.turn;
+    
+                if(!next.moveCounts[aimark])next.moveCounts[aimark] = 0;
+
+                if(state.turn === aimark)next.moveCounts[aimark] += 1;
+
+                next.ChangeTurn();
+
+                return next;
+            }
+        }
+        AIAction.ASCENDING = function(act1, act2) {
+            if(act1.minimaxVal < act2.minimaxVal)return -1;
+            else if(act1.minimaxVal > act2.minimaxVal)return 1;
+            return 0;
+        }
+        AIAction.DESCENDING = function(act1, act2) {
+            if(act1.minimaxVal > act2.minimaxVal)return -1;
+            else if(act1.minimaxVal < act2.minimaxVal)return 1;
+            return 0;
+        }
+        function Score(_state) {
+            if(_state.result !== 'running') {
+                if(_state.result === (playermark+'-won')) {
+                    return 10 - _state.moveCounts[aimark];
+                }else if(_state.result === (aimark+'-won')) {
+                    return -10 + _state.moveCounts[aimark];
+                }else return 0;
+            }
+        }
+        function minimaxValue(state) {
+            if(state.IsTerminal()){
+                return Score(state);
+            }else {
+                let stateScore;
+                if(state.turn === playermark)stateScore = -1000;
+                else stateScore = 1000;
+
+                const availablePos = state.EmptyCells();
+                const availableNextStates = availablePos.map(pos => {
+                    const act = new AIAction(pos);
+                    const nextState = act.applyTo(state);
+                    return nextState;
+                });
+
+                availableNextStates.forEach(nextState => {
+                    const nextScore = minimaxValue(nextState);
+                    if(state.turn === playermark){
+                        if(nextScore > stateScore)stateScore = nextScore;
+                    }else {
+                        if(nextScore < stateScore) stateScore = nextScore;
+                    }
+                });
+
+                return stateScore;
+            }
+        }
+        async function AITurn() {
+            const available = currstate.EmptyCells();
+
+            const availableAct = available.map(pos => {
+                const act = new AIAction(pos);
+                const next = act.applyTo(currstate);
+                act.minimaxVal = minimaxValue(next);
+                return act;
+            });
+
+            if(currstate.turn === playermark)availableAct.sort(AIAction.DESCENDING);
+            else availableAct.sort(AIAction.ASCENDING);
+
+            const chosenAct = availableAct[0];
+            // const next = chosenAct.applyTo(currstate);
+
+            return chosenAct?.movePosition ?? false;
+        }
         
         
         $this.NewGameDialog();
     }
+
 })()
