@@ -74,7 +74,7 @@ body {
     transition: opacity 200ms linear;
     color: inherit;
 }
-.xoxo_option_input:hover .xoxo_option_value {
+.xoxo_option_input .xoxo_option_value:hover {
     opacity: 1;
 }
 .xoxo_option_input .xoxo_option_value::before {
