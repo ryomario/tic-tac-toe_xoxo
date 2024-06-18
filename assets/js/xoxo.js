@@ -123,6 +123,11 @@
             return false;
         }
     }
+    const game_options_available = {
+        gamemode: ['normal','continually'],
+        gametype: ['vshuman','vsai'],
+        aimark: ['x','o'],
+    };
 
     function xOxOGame(containerId, options) {
         if(!(this instanceof xOxOGame)) return new xOxOGame(containerId, options);
@@ -142,17 +147,33 @@
 
         // merge opts
 
+        var defaults = {
+            gamemode: 'normal',
+            gametype: 'vsai',
+            aimark: 'o',
+        };
 
+        $this.settings = Object.assign({}, defaults, options);
+
+        // assert options
+        for (const key in $this.settings) {
+            if (Object.hasOwnProperty.call(game_options_available, key)) {
+                const ava_opts = game_options_available[key];
+                if(Array.isArray(ava_opts) && ava_opts.findIndex(avaopt => $this.settings[key] === avaopt) === -1)throw Error(`xOxOGame options '${key}' must be in (${ava_opts.join(', ')})!`);
+            }
+        }
+        if($this.settings.aimark !== 'x' && $this.settings.aimark !== 'o')throw Error('xOxOGame options {aimark} must be "x" or "o"!');
+        
         // constant
 
         const maxplayerturnhistory = 3; // helper for game mode 'continually'
-        const aimark = 'o'; // helper for game type 'vsai'
-        const playermark = 'x'; // helper for game type 'vsai'
+        const aimark = $this.settings.aimark; // helper for game type 'vsai'
+        const playermark = ($this.settings.aimark === 'x') ? 'o' : 'x'; // helper for game type 'vsai'
 
         // variables
 
-        var gamemode; // normal, continually
-        var gametype; // vshuman, vsai
+        var gamemode = $this.settings.gamemode; // normal, continually
+        var gametype = $this.settings.gametype; // vshuman, vsai
 
         var currstate = new GameState();
 
@@ -273,8 +294,8 @@
             statusmap[name].appendChild(value);
         }
 
-        SetNamedStatusBar('gamemode',gamemode,'Game Mode');
-        SetNamedStatusBar('next-turn',currstate.turn,'Next Turn');
+        SetNamedStatusBar('gamemode','','Game Mode');
+        SetNamedStatusBar('next-turn','','Next Turn');
 
         /**
          * 
@@ -493,13 +514,14 @@
             const elem_option = CreateNode('div',['xoxo_option']);
             const elem_option_label = CreateNode('div',['xoxo_option_label']);
             const elem_option_select = CreateNode('div',['xoxo_option_input']);
-            elem_option_select.dataset.optid = option_menus.value;
             
             elem_option_label.innerHTML = option_menus.label;
             for (const input_opt of option_menus.inputs) {
                 const elem_option_opt = CreateNode('div','xoxo_option_value',{value: input_opt.value},null,input_opt.label);
                 if(defaultvalue == input_opt.value)elem_option_opt.classList.add('checked');
                 elem_option_select.appendChild(elem_option_opt);
+
+                elem_option_opt.addEventListener('mousedown',HandleClickOption);
             }
 
             function HandleClickOption(e) {
@@ -519,7 +541,6 @@
                     if(onchange)onchange(option_menus.value,val_el.value);
                 }
             }
-            elem_option_select.addEventListener('mousedown',HandleClickOption);
             
             elem_option.appendChild(elem_option_label);
             elem_option.appendChild(elem_option_select);
@@ -528,8 +549,8 @@
         }
         $this.NewGameDialog = function(cancelable = false, cancel_callback = null) {
             const options = {
-                'gamemode': gamemode ?? 'normal',
-                'gametype': gametype ?? 'vshuman',
+                'gamemode': gamemode ?? $this.settings.gamemode,
+                'gametype': gametype ?? $this.settings.gametype,
             };
             const dialog_newgame = $this.Dialog('Start New Game!', 'Start', ()=>{
                 $this.NewGame(options);
@@ -551,8 +572,6 @@
 
                 options[opt_name] = opt_selected;
             }
-            
-            elem_contianer_options.addEventListener('input', HandleGameModeOption);
 
             dialog_newgame.appendChildToMessage(elem_contianer_options);
             dialog_newgame.open();
@@ -562,8 +581,8 @@
 
         $this.NewGame = function(options = {}) {
             // don't reset current options
-            if(!gamemode)gamemode = 'normal';
-            if(!gametype)gametype = 'vshuman';
+            if(!gamemode)gamemode = $this.settings.gamemode;
+            if(!gametype)gametype = $this.settings.gametype;
             if(options && options['gamemode'])gamemode = options['gamemode'];
             if(options && options['gametype'])gametype = options['gametype'];
 
@@ -628,10 +647,21 @@
         /**
          * 
          * @returns get random player 'x' or 'o'
-         */
-        function GetRandomPlayer() {
-            const randid = Math.round(Math.random());
-            return ['o','x'][randid];
+        */
+       function GetRandomPlayer() {
+            const rand_quality = {};
+            rand_quality[playermark] = 1;
+            rand_quality[aimark] = 3;
+            if(gametype === 'vshuman')rand_quality[aimark] = 1;
+            const arr = [];
+            for (let idx = 0; idx < rand_quality[playermark]; idx++) {
+                arr.push(playermark);
+            }
+            for (let idx = 0; idx < rand_quality[aimark]; idx++) {
+                arr.push(aimark);
+            }
+            const randid = Math.round(Math.random() * (arr.length - 1));
+            return arr[randid];
         }
         /**
          * 
@@ -648,6 +678,7 @@
         }
         
         // AI Helper
+        const max_ai_remove_continually = 2; // experimental, 2 is more good for AI than 1
         function Action(pos, isai = false) {
             const $thisact = this;
             $thisact.movePosition = pos;
@@ -663,7 +694,7 @@
     
                 next.AddTurnToHistory($thisact.movePosition);
                 // wrap for game mode 'continually'
-                if(gamemode == 'continually' && !(next.moveCounts['ai'] && next.moveCounts['ai'] > 1)){
+                if(gamemode == 'continually' && !(next.moveCounts['ai'] && next.moveCounts['ai'] > max_ai_remove_continually)){
                     const removed_turns = [];
                     // check if at max history count
                     while(next.turnHistory[state.turn].length > maxplayerturnhistory) {
@@ -752,10 +783,14 @@
                 if(currstate.turn === playermark)availableAct.sort(Action.DESCENDING);
                 else availableAct.sort(Action.ASCENDING);
                 
-                // console.log(availableAct);
+                let chosenAct = availableAct[0];
+                if(chosenAct){
+                    let sameChosenActs = availableAct.filter(act => act.minimaxVal == chosenAct.minimaxVal);
+                    
+                    const randid = Math.round(Math.random() * (sameChosenActs.length - 1));
+                    chosenAct = sameChosenActs[randid];
+                }
 
-                const chosenAct = availableAct[0];
-                // const next = chosenAct.applyTo(currstate);
     
                 if(callback)callback(chosenAct?.movePosition ?? false);
             }, 300);

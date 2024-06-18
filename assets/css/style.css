@@ -64,7 +64,6 @@ body {
     border: 0;
     background-color: transparent;
     outline: none;
-    cursor: pointer;
 }
 .xoxo_option_input .xoxo_option_value {
     display: block;
@@ -73,6 +72,7 @@ body {
     opacity: 0.8;
     transition: opacity 200ms linear;
     color: inherit;
+    cursor: pointer;
 }
 .xoxo_option_input .xoxo_option_value:hover {
     opacity: 1;
