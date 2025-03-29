@@ -1,73 +1,14 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
-    <link rel="icon" href="favicon.ico" type="image/x-icon">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="shortcut icon" href="favicon.ico" type="image/x-icon" />
+    <link rel="icon" href="favicon.ico" type="image/x-icon" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Tic Tac Toe - xOxO</title>
-    <link rel="stylesheet" href="assets/css/style.css">
-    <script src="assets/js/xoxo.js"></script>
-</head>
-<body>
-    <div id="game" class="xoxo">
-        <div class="xoxo_title">tic tac toe - xoxo</div>
-        <div class="xoxo_topbar">
-            <div class="xoxo_status">
-                <div class="xoxo_status_label">Game mode</div>
-                <div class="xoxo_status_sep">:</div>
-                <div class="xoxo_status_value">Continually</div>
-            </div>
-            <div class="xoxo_status">
-                <div class="xoxo_status_label">Next Turn</div>
-                <div class="xoxo_status_sep">:</div>
-                <div class="xoxo_status_value">
-                    <div class="xoxo_mark xoxo_mark--x"></div>
-                </div>
-            </div>
-        </div>
-        <div class="xoxo_board">
-            <div class="xoxo_cell xoxo_cell--1">
-                <div class="xoxo_cell_label xoxo_mark xoxo_mark--o"></div>
-            </div>
-            <div class="xoxo_cell xoxo_cell--2">
-                <div class="xoxo_mark xoxo_mark--x xoxo_mark_will_deleted"></div>
-            </div>
-            <div class="xoxo_cell xoxo_cell--3">
-                <div class="xoxo_mark xoxo_mark--x"></div>
-            </div>
-            <div class="xoxo_cell xoxo_cell--4">
-                <div class="xoxo_cell_label xoxo_mark xoxo_mark--x"></div>
-            </div>
-            <div class="xoxo_cell xoxo_cell--5">
-                <div class="xoxo_cell_label xoxo_mark xoxo_mark--o"></div>
-            </div>
-            <div class="xoxo_cell xoxo_cell--6">
-                <div class="xoxo_mark xoxo_mark--o"></div>
-            </div>
-            <div class="xoxo_cell xoxo_cell--7">
-                <div class="xoxo_mark xoxo_mark--x"></div>
-            </div>
-            <div class="xoxo_cell xoxo_cell--8">
-                <div class="xoxo_cell_label xoxo_mark xoxo_mark--x"></div>
-            </div>
-            <div class="xoxo_cell xoxo_cell--9">
-                <div class="xoxo_mark xoxo_mark--o"></div>
-            </div>
-        </div>
-        <div class="xoxo_bar">
-            <button class="xoxo_btn">new game</button>
-        </div>
-        <dialog class="xoxo_endgame">
-            <div class="xoxo_endgame_msg">Draw!</div>
-            <button class="xoxo_btn">try again</button>
-        </dialog>
-    </div>
-
-    <script>
-        new xOxOGame('game',{
-            aimark: 'o'
-        });
-    </script>
-</body>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
 </html>
