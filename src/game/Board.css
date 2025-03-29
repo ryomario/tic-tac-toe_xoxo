@@ -1,0 +1,10 @@
+.game-board, .game-board-row {
+  display: flex;
+}
+.game-board {
+  flex-direction: column;
+}
+.game-board-row {
+  flex-direction: row;
+  flex-grow: 1;
+}

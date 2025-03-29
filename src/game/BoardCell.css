@@ -1,0 +1,23 @@
+.game-board-cell {
+  display: block;
+  flex-grow: 1;
+  position: relative;
+  border: 5px solid;
+}
+.game-board-cell[role=button] {
+  cursor: pointer;
+}
+
+.game-board-cell:first-child {
+  border-left-color: transparent;
+}
+.game-board-cell:last-child {
+  border-right-color: transparent;
+}
+
+.game-board-row:first-child .game-board-cell {
+  border-top-color: transparent;
+}
+.game-board-row:last-child .game-board-cell {
+  border-bottom-color: transparent;
+}

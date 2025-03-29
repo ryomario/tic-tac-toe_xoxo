@@ -1,9 +1,14 @@
 import './App.css'
+import { GameBoard } from './game'
 
 function App() {
+
   return (
     <>
-      Tic Tac Toe
+      <h1>Tic Tac Toe - XOXO</h1>
+      <GameBoard
+        size="90vw" maxSize={500}
+      />
     </>
   )
 }
