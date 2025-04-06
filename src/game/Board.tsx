@@ -21,8 +21,9 @@ export function GameBoard({
     return {
       row: `${100/rowLength}%`,
       col: `${100/colLength}%`,
+      line: `calc(${size} / ${rowLength} / 20)`,
     }
-  },[board])
+  },[board, size])
 
   return (
     <>
@@ -34,12 +35,23 @@ export function GameBoard({
         </tr>
       </table>
 
-      <div className="game-board" style={{ width: size, height: size, maxWidth: maxSize, maxHeight: maxSize }}>
+      <div className="game-board" style={{
+        width: size,
+        height: size,
+        maxWidth: maxSize,
+        maxHeight: maxSize,
+        fontSize: boardSize.line,
+      }}>
         {board.map((boardRow, row) => (
           <div className="game-board-row" style={{
             height: boardSize.row,
           }}>{boardRow.map((cell, col) => (
-            <GameBoardCell player={cell} {...((cell == null) && { onClick() { nextTurn([col, row]) } })} size={boardSize.col} nextPlayer={nextPlayer}/>
+            <GameBoardCell
+              player={cell}
+              {...((cell == null) && { onClick() { nextTurn([col, row]) } })}
+              size={boardSize.col}
+              nextPlayer={nextPlayer}
+            />
           ))}</div>
         ))}
       </div>

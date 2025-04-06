@@ -7,7 +7,8 @@ type Props = {
 }
 
 export function useGamePlayerTurn({ initialPlayer }: Props = {}) {
-  const [currentPlayer, setCurrentPlayer] = useState<IGamePlayer>(() => !initialPlayer ? randomPlayer() : initialPlayer)
+  const initPlayer = () => !initialPlayer ? randomPlayer() : initialPlayer
+  const [currentPlayer, setCurrentPlayer] = useState<IGamePlayer>(initPlayer)
 
   const nextPlayer = useMemo(() => getNextPlayer(currentPlayer),[currentPlayer])
 
@@ -15,9 +16,14 @@ export function useGamePlayerTurn({ initialPlayer }: Props = {}) {
     setCurrentPlayer(nextPlayer)
   }
 
+  const resetTurn = () => {
+    setCurrentPlayer(initPlayer)
+  }
+
   return {
     currentPlayer,
     nextPlayer,
     setNextPlayer,
+    resetTurn,
   }
 }

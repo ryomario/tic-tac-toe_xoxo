@@ -1,20 +1,19 @@
 import { useCallback, useState } from "react"
-import { EMPTY_GAME_BOARD } from "../factory/gameBoard"
+import { generateBoard, nextBoardState } from "../factory/gameBoard"
 import { IGameBoard, IGameBoardCoordinate, IGamePlayer } from "../types"
 
-export function useGameBoard() {
-  const [board, setBoard] = useState<IGameBoard>(EMPTY_GAME_BOARD)
+type Params = {
+  size: number
+}
 
-  const setBoardCell = (coordinate :IGameBoardCoordinate, player: IGamePlayer|null) => {
-    const [col, row] = coordinate
-    
+export function useGameBoard({
+  size = 3,
+}: Params) {
+  const [board, setBoard] = useState<IGameBoard>(generateBoard(size))
+
+  const setBoardCell = (coordinate :IGameBoardCoordinate, player: IGamePlayer) => {
     setBoard(oldBoard => {
-      const newBoard: IGameBoard = [
-        ...oldBoard.map(row => ([...row])),
-      ]
-      newBoard[row][col] = player
-
-      return newBoard
+      return nextBoardState(oldBoard, { coordinate, player })
     })
   }
 
@@ -24,9 +23,14 @@ export function useGameBoard() {
     return board[row][col]
   },[board])
 
+  const resetBoard = () => {
+    setBoard(generateBoard(size))
+  }
+
   return {
     board,
     setBoardCell,
     getPlayerInBoard,
+    resetBoard,
   }
 }
