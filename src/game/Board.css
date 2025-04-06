@@ -8,3 +8,16 @@
   flex-direction: row;
   flex-grow: 1;
 }
+
+table.game-info {
+  border: none;
+  width: 100%;
+  text-align: left;
+  vertical-align: baseline;
+  margin-bottom: 1rem;
+  line-height: 1;
+}
+table.game-info th {
+  width: 30%;
+  min-width: 120px;
+}

@@ -26,16 +26,20 @@ export function GameBoard({
 
   return (
     <>
-      <h2>
-        Current Turn : <GamePlayer player={nextPlayer} size="2em" lineSize="0.25em"/>
-      </h2>
+      <table className="game-info">
+        <tr>
+          <th>Current Turn</th>
+          <td width={1}>:</td>
+          <td><GamePlayer player={nextPlayer} size="1.5em" lineSize="0.25em" scale={1}/></td>
+        </tr>
+      </table>
 
       <div className="game-board" style={{ width: size, height: size, maxWidth: maxSize, maxHeight: maxSize }}>
         {board.map((boardRow, row) => (
           <div className="game-board-row" style={{
             height: boardSize.row,
           }}>{boardRow.map((cell, col) => (
-            <GameBoardCell player={cell} {...((cell == null) && { onClick() { nextTurn([col, row]) } })} size={boardSize.col}/>
+            <GameBoardCell player={cell} {...((cell == null) && { onClick() { nextTurn([col, row]) } })} size={boardSize.col} nextPlayer={nextPlayer}/>
           ))}</div>
         ))}
       </div>

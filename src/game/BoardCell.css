@@ -2,7 +2,7 @@
   display: block;
   flex-grow: 1;
   position: relative;
-  border: 5px solid;
+  border: 0.5em solid rgba(var(--text-color-rgb), 0.25);
 }
 .game-board-cell[role=button] {
   cursor: pointer;
@@ -20,4 +20,14 @@
 }
 .game-board-row:last-child .game-board-cell {
   border-bottom-color: transparent;
+}
+
+.game-board-cell-next-player {
+  position: absolute;
+  opacity: 0;
+  transition: opacity 100ms;
+  --color: var(--text-color) !important;
+}
+.game-board-cell:hover .game-board-cell-next-player {
+  opacity: 0.1;
 }
