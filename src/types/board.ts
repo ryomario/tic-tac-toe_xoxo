@@ -1,3 +1,4 @@
+import { IGameState } from "./game";
 import { IGamePlayer } from "./player";
 
 export type IGameBoard = Array<Array<IGamePlayer|null>>
@@ -8,9 +9,9 @@ export type IGameBoardCoordinate = [
 ]
 
 export type IGameBoardState = {
-  type: 'over'|'running'|'draw'
-  winner: IGamePlayer|null
-  winCoors: null|IGameBoardCoordinate[]
+  type: IGameState
+  winner?: IGamePlayer
+  winCoors?: IGameBoardCoordinate[]
 }
 
 export type IGameBoardTurn = {

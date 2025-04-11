@@ -13,7 +13,7 @@ type Props = {
 
 export function GamePlayer({
   player,
-  lineSize = '1em',
+  lineSize = '0.8em',
   size = "100%",
   className = '',
   scale,

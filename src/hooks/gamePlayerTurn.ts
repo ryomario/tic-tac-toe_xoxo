@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react"
+import { useState } from "react"
 import { IGamePlayer } from "../types"
 import { getNextPlayer, randomPlayer } from "../factory"
 
@@ -10,10 +10,8 @@ export function useGamePlayerTurn({ initialPlayer }: Props = {}) {
   const initPlayer = () => !initialPlayer ? randomPlayer() : initialPlayer
   const [currentPlayer, setCurrentPlayer] = useState<IGamePlayer>(initPlayer)
 
-  const nextPlayer = useMemo(() => getNextPlayer(currentPlayer),[currentPlayer])
-
   const setNextPlayer = () => {
-    setCurrentPlayer(nextPlayer)
+    setCurrentPlayer(getNextPlayer(currentPlayer))
   }
 
   const resetTurn = () => {
@@ -22,7 +20,6 @@ export function useGamePlayerTurn({ initialPlayer }: Props = {}) {
 
   return {
     currentPlayer,
-    nextPlayer,
     setNextPlayer,
     resetTurn,
   }

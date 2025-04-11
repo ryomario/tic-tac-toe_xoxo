@@ -1,5 +1,5 @@
 import { useCallback, useState } from "react"
-import { generateBoard, nextBoardState } from "../factory/gameBoard"
+import { DEFAULT_BOARD_SIZE, generateBoard, nextBoardState } from "../factory"
 import { IGameBoard, IGameBoardCoordinate, IGamePlayer } from "../types"
 
 type Params = {
@@ -7,7 +7,7 @@ type Params = {
 }
 
 export function useGameBoard({
-  size = 3,
+  size = DEFAULT_BOARD_SIZE,
 }: Params) {
   const [board, setBoard] = useState<IGameBoard>(generateBoard(size))
 

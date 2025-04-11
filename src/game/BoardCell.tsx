@@ -20,8 +20,8 @@ export function GameBoardCell({
     <div className="game-board-cell" {...(onClick && {role: "button", onClick})} style={{
       width: size
     }}>
-      {player && <GamePlayer player={player}/>}
-      {showNextPlayer && <GamePlayer player={nextPlayer} className="game-board-cell-next-player"/>}
+      {player && <GamePlayer player={player} scale={0.75}/>}
+      {showNextPlayer && <GamePlayer player={nextPlayer} scale={0.75} className="game-board-cell-next-player"/>}
     </div>
   )
 }

@@ -2,7 +2,7 @@
   display: block;
   flex-grow: 1;
   position: relative;
-  border: 0.5em solid rgba(var(--text-color-rgb), 0.25);
+  border: 0.4em solid rgba(var(--text-color-rgb), 0.25);
 }
 .game-board-cell[role=button] {
   cursor: pointer;

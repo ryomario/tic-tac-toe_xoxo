@@ -1,12 +1,6 @@
 import { IGameBoard, IGameBoardCoordinate, IGameBoardState, IGameBoardTurn, IGamePlayer } from "../types";
 
-export const EMPTY_GAME_BOARD: IGameBoard = [
-  [null,null,null,null],
-  [null,null,null,null],
-  [null,null,null,null],
-  [null,null,null,null],
-  [null,null,null,null],
-]
+export const DEFAULT_BOARD_SIZE = 3
 
 export const WIN_MIN_CHAIN = 3
 
@@ -38,8 +32,6 @@ export function checkGameTurn([col, row]: IGameBoardCoordinate, board: IGameBoar
   const player = board[row][col]
   if(!player) return {
     type: 'running',
-    winner: null,
-    winCoors: null,
   }
 
   let chain_coors: IGameBoardCoordinate[] = []
@@ -124,15 +116,11 @@ export function checkGameTurn([col, row]: IGameBoardCoordinate, board: IGameBoar
     for(const cell of b_row) {
       if(cell == null) return {
         type: 'running',
-        winCoors: null,
-        winner: null,
       }
     }
   }
 
   return {
     type: 'draw',
-    winCoors: null,
-    winner: null,
   }
 }
