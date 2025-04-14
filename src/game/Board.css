@@ -2,7 +2,9 @@
   display: flex;
 }
 .game-board {
+  --cell-gap: 0.8em;
   flex-direction: column;
+  padding: calc(var(--cell-gap) / 2);
 }
 .game-board-row {
   flex-direction: row;

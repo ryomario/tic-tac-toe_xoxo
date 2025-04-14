@@ -10,11 +10,13 @@ function App() {
       <h1>Tic Tac Toe - XOXO</h1>
       
       <table className="game-info">
-        <tr>
-          <th>Current Turn</th>
-          <td width={1}>:</td>
-          <td><GamePlayer player={currentPlayer} size="1.5em" lineSize="0.25em" scale={1}/></td>
-        </tr>
+        <tbody>
+          <tr>
+            <th>Current Turn</th>
+            <td width={1}>:</td>
+            <td><GamePlayer player={currentPlayer} size="1.5em" lineSize="0.25em" scale={1}/></td>
+          </tr>
+        </tbody>
       </table>
 
       <GameBoard />

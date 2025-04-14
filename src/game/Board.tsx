@@ -4,7 +4,7 @@ import { useMemo } from "react"
 import { useGameContext } from "../context/gameContext"
 
 const BOARD_SIZE = '90vw'
-const BOARD_MAX_SIZE = 500
+const BOARD_MAX_SIZE = '500px'
 
 export function GameBoard() {
   const { boardMap, currentPlayer, doTurn } = useGameContext()
@@ -15,7 +15,7 @@ export function GameBoard() {
     return {
       row: `${100/rowLength}%`,
       col: `${100/colLength}%`,
-      line: `calc(${BOARD_SIZE} / ${rowLength} / 20)`,
+      line: `calc(min(${BOARD_SIZE},${BOARD_MAX_SIZE}) / ${rowLength} / 7.5)`,
     }
   },[boardMap])
 
@@ -29,10 +29,11 @@ export function GameBoard() {
         fontSize: boardSize.line,
       }}>
         {boardMap.map((boardRow, row) => (
-          <div className="game-board-row" style={{
+          <div key={`row-${row}`} className="game-board-row" style={{
             height: boardSize.row,
           }}>{boardRow.map((cell, col) => (
             <GameBoardCell
+              key={`cell-${col}`}
               player={cell}
               {...((cell == null) && { onClick() { doTurn([col, row]) } })}
               size={boardSize.col}

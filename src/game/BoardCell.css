@@ -2,25 +2,17 @@
   display: block;
   flex-grow: 1;
   position: relative;
-  border: 0.4em solid rgba(var(--text-color-rgb), 0.25);
+  border: calc(var(--cell-gap) / 2) solid transparent;
+  border-radius: calc(var(--cell-gap) * 2);
+  background: rgba(0, 0, 0, 0.1);
+  background-clip: content-box;
+  box-shadow: inset calc(var(--cell-gap) / 2) calc(var(--cell-gap) / 2) calc(var(--cell-gap) / 2) #0002;
 }
 .game-board-cell[role=button] {
   cursor: pointer;
 }
 
-.game-board-cell:first-child {
-  border-left-color: transparent;
-}
-.game-board-cell:last-child {
-  border-right-color: transparent;
-}
 
-.game-board-row:first-child .game-board-cell {
-  border-top-color: transparent;
-}
-.game-board-row:last-child .game-board-cell {
-  border-bottom-color: transparent;
-}
 
 .game-board-cell-next-player {
   position: absolute;
