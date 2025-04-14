@@ -10,5 +10,7 @@ export interface IGameContext {
   winnerPlayer?: IGamePlayer
   winChainCoors?: IGameBoardCoordinate[]
   doTurn: (coors: IGameBoardCoordinate) => void
-  doReset: () => void
+  nextGame: () => void
+  newGame: () => void
+  startGame: (options: any) => void
 }

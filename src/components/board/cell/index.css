@@ -2,17 +2,16 @@
   display: block;
   flex-grow: 1;
   position: relative;
-  border: calc(var(--cell-gap) / 2) solid transparent;
+  margin: calc(var(--cell-gap) / 2);
   border-radius: calc(var(--cell-gap) * 2);
   background: rgba(0, 0, 0, 0.1);
   background-clip: content-box;
+  box-sizing: border-box;
   box-shadow: inset calc(var(--cell-gap) / 2) calc(var(--cell-gap) / 2) calc(var(--cell-gap) / 2) #0002;
 }
 .game-board-cell[role=button] {
   cursor: pointer;
 }
-
-
 
 .game-board-cell-next-player {
   position: absolute;

@@ -6,5 +6,7 @@ export const DEFAULT_CONTEXT_VALUE: IGameContext = {
   boardMap: generateBoard(3,null),
   gameState: "start",
   doTurn: () => {},
-  doReset: () => {},
+  nextGame: () => {},
+  newGame: () => {},
+  startGame: () => {},
 }

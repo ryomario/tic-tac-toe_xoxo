@@ -10,6 +10,8 @@ export function GameProvider({ children }: React.PropsWithChildren) {
   const { board: boardMap, setBoardCell, getPlayerInBoard, resetBoard } = useGameBoard({ size: DEFAULT_BOARD_SIZE })
   const [gameState, setGameState] = useState<IGameState>(DEFAULT_CONTEXT_VALUE.gameState)
   const [winState, setWinState] = useState<{ winnerPlayer?: IGamePlayer, winChainCoors?: IGameBoardCoordinate[] }>({})
+  const resetGameState = () => setGameState(DEFAULT_CONTEXT_VALUE.gameState)
+  const resetWinState = () => setWinState({})
 
   const doTurn = useCallback((coordinate: IGameBoardCoordinate) => {
     if(getPlayerInBoard(coordinate) == null) {
@@ -24,18 +26,31 @@ export function GameProvider({ children }: React.PropsWithChildren) {
     }
   },[setBoardCell, currentPlayer])
 
-  const resetGame = useCallback(() => {
+  const nextGame = useCallback(() => {
     resetBoard()
     resetTurn()
-  },[resetBoard,resetTurn])
+    setGameState('running')
+    resetWinState()
+  },[resetBoard,resetTurn,setGameState,resetWinState])
+
+  const newGame = useCallback(() => {
+    // @TODO reset score and more
+    nextGame()
+    resetGameState()
+  },[nextGame,resetGameState])
+
+  const startGame = useCallback((options: any) => {
+    // @TODO Game Options
+    setGameState('running')
+  },[])
 
   useEffect(() => {
     if(gameState == 'over') {
       alert(`Winner : ${winState.winnerPlayer}`)
-      resetGame()
+      newGame()
     } else if(gameState == 'draw') {
       alert('Game Draw')
-      resetGame()
+      nextGame()
     }
   },[gameState])
 
@@ -46,8 +61,10 @@ export function GameProvider({ children }: React.PropsWithChildren) {
     winnerPlayer: winState.winnerPlayer,
     winChainCoors: winState.winChainCoors,
     doTurn,
-    doReset: resetGame,
-  }),[currentPlayer, boardMap, gameState, winState, doTurn, resetGame])
+    newGame,
+    nextGame,
+    startGame,
+  }),[currentPlayer, boardMap, gameState, winState, doTurn, nextGame, newGame,startGame])
 
   return <GameContext.Provider value={value}>{children}</GameContext.Provider>
 }

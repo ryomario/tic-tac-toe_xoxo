@@ -1,7 +1,7 @@
-import "./Board.css"
-import { GameBoardCell } from "./BoardCell"
+import "./index.css"
+import { GameBoardCell } from "./cell/BoardCell"
 import { useMemo } from "react"
-import { useGameContext } from "../context/gameContext"
+import { useGameContext } from "../../context/gameContext"
 
 const BOARD_SIZE = '90vw'
 const BOARD_MAX_SIZE = '500px'

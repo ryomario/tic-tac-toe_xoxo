@@ -1,6 +1,6 @@
 import './App.css'
 import { useGameContext } from './context/gameContext'
-import { GameBoard, GamePlayer } from './game'
+import { GameBoard, GamePlayer, NewGameDialog } from './components'
 
 function App() {
   const { currentPlayer } = useGameContext()
@@ -20,6 +20,7 @@ function App() {
       </table>
 
       <GameBoard />
+      <NewGameDialog />
     </>
   )
 }

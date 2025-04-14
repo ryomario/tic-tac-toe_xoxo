@@ -1,6 +1,6 @@
-import { IGamePlayer, IPercentage } from "../types"
-import { parseFloatRange } from "../utils/numbers"
-import "./Player.css"
+import { IGamePlayer, IPercentage } from "../../types"
+import { parseFloatRange } from "../../utils/numbers"
+import "./index.css"
 
 type Props = {
   player: IGamePlayer

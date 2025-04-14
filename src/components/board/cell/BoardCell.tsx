@@ -1,6 +1,6 @@
-import { IGamePlayer } from "../types"
-import { GamePlayer } from "./Player"
-import "./BoardCell.css"
+import { IGamePlayer } from "../../../types"
+import { GamePlayer } from "../../player/Player"
+import "./index.css"
 
 type Props = {
   player: IGamePlayer|null
