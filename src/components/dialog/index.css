@@ -23,6 +23,15 @@ dialog > header {
   text-align: center;
   padding-bottom: 1rem;
 }
+dialog > main {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  & .game-options {
+    display: block;
+  }
+}
 
 dialog > footer {
   display: block;

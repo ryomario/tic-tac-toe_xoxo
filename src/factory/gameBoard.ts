@@ -1,4 +1,4 @@
-import { IGameBoard, IGameBoardCoordinate, IGameBoardState, IGameBoardTurn, IGamePlayer } from "../types";
+import { GameState, IGameBoard, IGameBoardCoordinate, IGameBoardState, IGameBoardTurn, IGamePlayer } from "../types";
 
 export const DEFAULT_BOARD_SIZE = 3
 
@@ -31,7 +31,7 @@ export function checkGameTurn([col, row]: IGameBoardCoordinate, board: IGameBoar
 
   const player = board[row][col]
   if(!player) return {
-    type: 'running',
+    type: GameState.running,
   }
 
   let chain_coors: IGameBoardCoordinate[] = []
@@ -49,7 +49,7 @@ export function checkGameTurn([col, row]: IGameBoardCoordinate, board: IGameBoar
     c_row++, c_col++
   }
   if(chain_coors.length >= WIN_MIN_CHAIN) return {
-    type: 'over',
+    type: GameState.over,
     winner: player,
     winCoors: chain_coors,
   }
@@ -68,7 +68,7 @@ export function checkGameTurn([col, row]: IGameBoardCoordinate, board: IGameBoar
     c_row++
   }
   if(chain_coors.length >= WIN_MIN_CHAIN) return {
-    type: 'over',
+    type: GameState.over,
     winner: player,
     winCoors: chain_coors,
   }
@@ -87,7 +87,7 @@ export function checkGameTurn([col, row]: IGameBoardCoordinate, board: IGameBoar
     c_row++, c_col--
   }
   if(chain_coors.length >= WIN_MIN_CHAIN) return {
-    type: 'over',
+    type: GameState.over,
     winner: player,
     winCoors: chain_coors,
   }
@@ -106,7 +106,7 @@ export function checkGameTurn([col, row]: IGameBoardCoordinate, board: IGameBoar
     c_col++
   }
   if(chain_coors.length >= WIN_MIN_CHAIN) return {
-    type: 'over',
+    type: GameState.over,
     winner: player,
     winCoors: chain_coors,
   }
@@ -115,12 +115,12 @@ export function checkGameTurn([col, row]: IGameBoardCoordinate, board: IGameBoar
   for(const b_row of board) {
     for(const cell of b_row) {
       if(cell == null) return {
-        type: 'running',
+        type: GameState.running,
       }
     }
   }
 
   return {
-    type: 'draw',
+    type: GameState.draw,
   }
 }

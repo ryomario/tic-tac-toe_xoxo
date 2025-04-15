@@ -1,4 +1,4 @@
-import { IGameState } from "./game";
+import { GameState } from "./game";
 import { IGamePlayer } from "./player";
 
 export type IGameBoard = Array<Array<IGamePlayer|null>>
@@ -9,7 +9,7 @@ export type IGameBoardCoordinate = [
 ]
 
 export type IGameBoardState = {
-  type: IGameState
+  type: GameState
   winner?: IGamePlayer
   winCoors?: IGameBoardCoordinate[]
 }
