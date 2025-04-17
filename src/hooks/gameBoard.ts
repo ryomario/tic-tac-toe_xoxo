@@ -1,6 +1,6 @@
 import { useCallback, useState } from "react"
 import { DEFAULT_BOARD_SIZE, generateBoard, nextBoardState } from "../factory"
-import { IGameBoard, IGameBoardCoordinate, IGamePlayer } from "../types"
+import { IGameBoard, IGameBoardCoordinate, IGamePlayer, IGamePlayerStepHistory } from "../types"
 
 type Params = {
   size: number
@@ -27,10 +27,22 @@ export function useGameBoard({
     setBoard(generateBoard(size))
   }
 
+  const applyFromPlayerStepHistory = useCallback((playerStepHistory: IGamePlayerStepHistory) => {
+    let newBoard = generateBoard(size)
+    for (const key in playerStepHistory) {
+      const player = key as IGamePlayer
+      playerStepHistory[player].forEach(coordinate => {
+        newBoard = nextBoardState(newBoard, { coordinate, player })
+      })
+    }
+    setBoard(newBoard)
+  },[setBoard])
+
   return {
     board,
     setBoardCell,
     getPlayerInBoard,
     resetBoard,
+    applyFromPlayerStepHistory,
   }
 }

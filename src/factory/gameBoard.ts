@@ -1,8 +1,9 @@
-import { GameState, IGameBoard, IGameBoardCoordinate, IGameBoardState, IGameBoardTurn, IGamePlayer } from "../types";
+import { GameState, IGameBoard, IGameBoardCoordinate, IGameBoardState, IGameBoardTurn, IGamePlayer, IGamePlayerStepHistory, IGameStepHistory } from "../types";
+import { GAME_MAX_STEP_HISTORY } from "./game";
 
 export const DEFAULT_BOARD_SIZE = 3
 
-export const WIN_MIN_CHAIN = 3
+export const WIN_MIN_CHAIN = GAME_MAX_STEP_HISTORY
 
 export function generateBoard(size: number, fill: IGamePlayer|null = null): IGameBoard {
   const board: IGameBoard = []
@@ -122,5 +123,21 @@ export function checkGameTurn([col, row]: IGameBoardCoordinate, board: IGameBoar
 
   return {
     type: GameState.draw,
+  }
+}
+
+export function checkGamePlayerStep(playerStep: IGamePlayerStepHistory, board: IGameBoard): IGameBoardState {
+  if(playerStep.o.length) {
+    let win = checkGameTurn([...playerStep.o].pop() ?? [0,0],board)
+    if(win.type == GameState.over) {
+      return win
+    }
+  }
+  if(playerStep.x.length) {
+    return checkGameTurn([...playerStep.x].pop() ?? [0,0],board)
+  }
+
+  return {
+    type: GameState.running,
   }
 }

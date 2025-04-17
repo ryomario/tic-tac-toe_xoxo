@@ -38,3 +38,7 @@ export interface IGameOptions {
   isVsAI?: boolean
   difficulty: GameDifficulty
 }
+
+export type IGameStepHistory = IGameBoardCoordinate[]
+
+export type IGamePlayerStepHistory = Record<IGamePlayer,IGameStepHistory>
