@@ -44,117 +44,135 @@ export function getPlayerInBoard(board: IGameBoard,coordinate: IGameBoardCoordin
   return board[row][col]
 }
 
-export function checkGameTurn([col, row]: IGameBoardCoordinate, board: IGameBoard): IGameBoardState {
-  if(board.length <= row || board[0].length <= col) throw new Error('Out of range')
-
-  const player = board[row][col]
-  if(!player) return {
-    type: GameState.running,
-  }
-
-  let chain_coors: IGameBoardCoordinate[] = []
-  let c_row = row, c_col = col
-
-  // check chain \ above
-  while(c_row >= 0 && c_col >= 0 && board[c_row][c_col] == player) {
-    chain_coors.push([c_col,c_row])
-    c_row--, c_col--
-  }
-  // check chain \ below
-  c_row = row + 1, c_col = col + 1
-  while(c_row < board.length && c_col < board[c_row].length && board[c_row][c_col] == player) {
-    chain_coors.push([c_col,c_row])
-    c_row++, c_col++
-  }
-  if(chain_coors.length >= WIN_MIN_CHAIN) return {
-    type: GameState.over,
-    winner: player,
-    winCoors: chain_coors,
-  }
-  
-  // check chain | above
-  chain_coors = []
-  c_row = row, c_col = col
-  while(c_row >= 0 && board[c_row][c_col] == player) {
-    chain_coors.push([c_col,c_row])
-    c_row--
-  }
-  // check chain | below
-  c_row = row + 1, c_col = col
-  while(c_row < board.length && board[c_row][c_col] == player) {
-    chain_coors.push([c_col,c_row])
-    c_row++
-  }
-  if(chain_coors.length >= WIN_MIN_CHAIN) return {
-    type: GameState.over,
-    winner: player,
-    winCoors: chain_coors,
-  }
-
-  // check chain / above
-  chain_coors = []
-  c_row = row, c_col = col
-  while(c_row >= 0 && c_col < board[c_row].length && board[c_row][c_col] == player) {
-    chain_coors.push([c_col,c_row])
-    c_row--, c_col++
-  }
-  // check chain / below
-  c_row = row + 1, c_col = col - 1
-  while(c_row < board.length && c_col >= 0 && board[c_row][c_col] == player) {
-    chain_coors.push([c_col,c_row])
-    c_row++, c_col--
-  }
-  if(chain_coors.length >= WIN_MIN_CHAIN) return {
-    type: GameState.over,
-    winner: player,
-    winCoors: chain_coors,
-  }
-  
-  // check chain - left
-  chain_coors = []
-  c_row = row, c_col = col
-  while(c_col >= 0 && board[c_row][c_col] == player) {
-    chain_coors.push([c_col,c_row])
-    c_col--
-  }
-  // check chain - right
-  c_row = row, c_col = col + 1
-  while(c_col < board[c_row].length && board[c_row][c_col] == player) {
-    chain_coors.push([c_col,c_row])
-    c_col++
-  }
-  if(chain_coors.length >= WIN_MIN_CHAIN) return {
-    type: GameState.over,
-    winner: player,
-    winCoors: chain_coors,
-  }
-
-  // check not over
-  for(const b_row of board) {
-    for(const cell of b_row) {
-      if(cell == null) return {
-        type: GameState.running,
+function checkRowState(row_idx: number,board: IGameBoard): IGameBoardState|null {
+  if(!board[row_idx])return null;
+  let c_player: IGamePlayer|null = null
+  let coordinates: IGameBoardCoordinate[] = []
+  for(let col = 0; col < board[row_idx].length; col++) {
+    const board_cell = board[row_idx][col]
+    if(board_cell != null) {
+      if(c_player != board_cell) {
+        c_player = board_cell
+        coordinates = []
       }
+      coordinates.push([col, row_idx])
+      if(coordinates.length >= WIN_MIN_CHAIN) return {
+        type: GameState.over,
+        winner: c_player,
+        winCoors: coordinates,
+      }
+    } else {
+      coordinates = []
     }
   }
-
-  return {
-    type: GameState.draw,
-  }
+  return null
 }
 
-export function checkGamePlayerStep(playerStep: IGamePlayerStepHistory, board: IGameBoard): IGameBoardState {
-  if(playerStep.o.length) {
-    let win = checkGameTurn([...playerStep.o].pop() ?? [0,0],board)
-    if(win.type == GameState.over) {
-      return win
+function checkColState(col_idx: number,board: IGameBoard): IGameBoardState|null {
+  if(!board || board.length == 0 || !board[0][col_idx] || board[0][col_idx].length == 0)return null;
+  let c_player: IGamePlayer|null = null
+  let coordinates: IGameBoardCoordinate[] = []
+  for(let row = 0; row < board.length; row++) {
+    const board_cell = board[row][col_idx]
+    if(board_cell != null) {
+      if(c_player != board_cell) {
+        c_player = board_cell
+        coordinates = []
+      }
+      coordinates.push([col_idx, row])
+      if(coordinates.length >= WIN_MIN_CHAIN) return {
+        type: GameState.over,
+        winner: c_player,
+        winCoors: coordinates,
+      }
+    } else {
+      coordinates = []
     }
   }
-  if(playerStep.x.length) {
-    return checkGameTurn([...playerStep.x].pop() ?? [0,0],board)
-  }
+  return null
+}
 
+function checkLeftDiagState(k: number,board: IGameBoard): IGameBoardState|null {
+  if(!board || board.length == 0 || !board[0] || board[0].length == 0)return null;
+  let c_player: IGamePlayer|null = null
+  let coordinates: IGameBoardCoordinate[] = []
+  const size = board.length
+  let start_i = Math.max(0, k)
+  let end_i = Math.min(size, size+k)
+  for(let i = start_i; i < end_i; i++) {
+    const col = i-k, row = i
+    const board_cell = board[row][col]
+    if(board_cell != null) {
+      if(c_player != board_cell) {
+        c_player = board_cell
+        coordinates = []
+      }
+      coordinates.push([col, row])
+      if(coordinates.length >= WIN_MIN_CHAIN) return {
+        type: GameState.over,
+        winner: c_player,
+        winCoors: coordinates,
+      }
+    } else {
+      coordinates = []
+    }
+  }
+  return null
+}
+
+function checkRightDiagState(k: number,board: IGameBoard): IGameBoardState|null {
+  if(!board || board.length == 0 || !board[0] || board[0].length == 0)return null;
+  let c_player: IGamePlayer|null = null
+  let coordinates: IGameBoardCoordinate[] = []
+  const size = board.length
+  let start_i = Math.max(0, k)
+  let end_i = Math.min(size, size+k)
+  for(let i = start_i; i < end_i; i++) {
+    const col = size -1 + k-i, row = i
+    console.log('k:'+k,col,row)
+    const board_cell = board[row][col]
+    if(board_cell != null) {
+      if(c_player != board_cell) {
+        c_player = board_cell
+        coordinates = []
+      }
+      coordinates.push([col, row])
+      if(coordinates.length >= WIN_MIN_CHAIN) return {
+        type: GameState.over,
+        winner: c_player,
+        winCoors: coordinates,
+      }
+    } else {
+      coordinates = []
+    }
+  }
+  return null
+}
+
+export function checkGameBoardState(board: IGameBoard): IGameBoardState {
+  let isOver = true
+  for(let row = 0; row < board.length; row++) {
+    // check row
+    const rowState = checkRowState(row, board)
+    if(rowState != null) return rowState
+    for(let col = 0; col < board.length; col++) {
+      if(row == 0) {
+        // check col
+        const colState = checkColState(col, board)
+        if(colState != null) return colState
+      }
+      if(board[row][col] == null) isOver = false
+    }
+  }
+  const size = board.length
+  for(let k = WIN_MIN_CHAIN - size; k <= (size - WIN_MIN_CHAIN); k++) {
+    const leftDiagState = checkLeftDiagState(k, board)
+    if(leftDiagState != null) return leftDiagState
+
+    const rightDiagState = checkRightDiagState(k, board)
+    if(rightDiagState != null) return rightDiagState
+  }
   return {
-    type: GameState.running,
+    type: isOver ? GameState.draw : GameState.running,
   }
 }

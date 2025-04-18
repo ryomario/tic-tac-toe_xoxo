@@ -1,6 +1,6 @@
 import React, { createContext, useCallback, useEffect, useMemo, useState } from "react";
 import { IGameBoardCoordinate, IGameContext, IGameOptions, IGamePlayer, GameState, IGamePlayerStepHistory, GameMode, IGameBoard, IGameBoardState } from "../types";
-import { checkGamePlayerStep, DEFAULT_BOARD_SIZE, DEFAULT_CONTEXT_VALUE, GAME_EMPTY_PLAYER_STEP_HISTORY, GAME_MAX_STEP_HISTORY, getBoardFromStepHistory, getNextPlayer, getPlayerInBoard, randomPlayer } from "../factory";
+import { checkGameBoardState, DEFAULT_BOARD_SIZE, DEFAULT_CONTEXT_VALUE, GAME_EMPTY_PLAYER_STEP_HISTORY, GAME_MAX_STEP_HISTORY, getBoardFromStepHistory, getNextPlayer, getPlayerInBoard, randomPlayer } from "../factory";
 
 const GameContext = createContext<IGameContext>(DEFAULT_CONTEXT_VALUE)
 
@@ -20,7 +20,7 @@ export function GameProvider({ children }: React.PropsWithChildren) {
 
   useEffect(() => {
     if(gameBoardState.type != GameState.running) return;
-    const boardState = checkGamePlayerStep(playerStepHistory, boardMap)
+    const boardState = checkGameBoardState(boardMap)
     setGameBoardState(boardState)
   },[playerStepHistory])
 
