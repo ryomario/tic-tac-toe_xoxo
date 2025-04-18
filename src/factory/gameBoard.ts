@@ -16,6 +16,17 @@ export function generateBoard(size: number, fill: IGamePlayer|null = null): IGam
   return board
 }
 
+export function getBoardFromStepHistory(playerStepHistory: IGamePlayerStepHistory, boardSize: number) {
+  let newBoard = generateBoard(boardSize)
+  for (const key in playerStepHistory) {
+    const player = key as IGamePlayer
+    playerStepHistory[player].forEach(coordinate => {
+      newBoard = nextBoardState(newBoard, { coordinate, player })
+    })
+  }
+  return newBoard
+}
+
 export function nextBoardState(board: IGameBoard, turn: IGameBoardTurn) {
   const [col, row] = turn.coordinate
   
@@ -25,6 +36,12 @@ export function nextBoardState(board: IGameBoard, turn: IGameBoardTurn) {
   newBoard[row][col] = turn.player
 
   return newBoard
+}
+
+export function getPlayerInBoard(board: IGameBoard,coordinate: IGameBoardCoordinate) {
+  const [col, row] = coordinate
+
+  return board[row][col]
 }
 
 export function checkGameTurn([col, row]: IGameBoardCoordinate, board: IGameBoard): IGameBoardState {

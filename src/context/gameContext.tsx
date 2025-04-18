@@ -1,33 +1,28 @@
 import React, { createContext, useCallback, useEffect, useMemo, useState } from "react";
-import { IGameBoardCoordinate, IGameContext, IGameOptions, IGamePlayer, GameState, IGameStepHistory, IGamePlayerStepHistory, GameMode } from "../types";
-import { checkGamePlayerStep, checkGameTurn, DEFAULT_BOARD_SIZE, DEFAULT_CONTEXT_VALUE, GAME_EMPTY_PLAYER_STEP_HISTORY, GAME_MAX_STEP_HISTORY, nextBoardState, randomPlayer } from "../factory";
-import { useGameBoard, useGamePlayerTurn } from "../hooks";
+import { IGameBoardCoordinate, IGameContext, IGameOptions, IGamePlayer, GameState, IGamePlayerStepHistory, GameMode, IGameBoard, IGameBoardState } from "../types";
+import { checkGamePlayerStep, DEFAULT_BOARD_SIZE, DEFAULT_CONTEXT_VALUE, GAME_EMPTY_PLAYER_STEP_HISTORY, GAME_MAX_STEP_HISTORY, getBoardFromStepHistory, getNextPlayer, getPlayerInBoard, randomPlayer } from "../factory";
 
 const GameContext = createContext<IGameContext>(DEFAULT_CONTEXT_VALUE)
 
 export function GameProvider({ children }: React.PropsWithChildren) {
-  const { currentPlayer, resetTurn, setNextPlayer } = useGamePlayerTurn({ initialPlayer: randomPlayer() })
-  const { board: boardMap, applyFromPlayerStepHistory, getPlayerInBoard, resetBoard } = useGameBoard({ size: DEFAULT_BOARD_SIZE })
-  const [gameState, setGameState] = useState<GameState>(DEFAULT_CONTEXT_VALUE.gameState)
-  const [winState, setWinState] = useState<{ winnerPlayer?: IGamePlayer, winChainCoors?: IGameBoardCoordinate[] }>({})
+  const [currentPlayer, setCurrentPlayer] = useState<IGamePlayer>(randomPlayer)
+  const setNextPlayer = useCallback(() => setCurrentPlayer(getNextPlayer(currentPlayer)),[currentPlayer,setCurrentPlayer])
+  const resetTurn = useCallback(() => setCurrentPlayer(randomPlayer()),[])
+  const [gameBoardState, setGameBoardState] = useState<IGameBoardState>({
+    type: DEFAULT_CONTEXT_VALUE.gameState,
+  })
   const [options, setOptions] = useState<IGameOptions>(DEFAULT_CONTEXT_VALUE.options)
   const [playerStepHistory, setPlayerStepHistory] = useState<IGamePlayerStepHistory>(GAME_EMPTY_PLAYER_STEP_HISTORY)
-  const resetGameState = useCallback(() => setGameState(DEFAULT_CONTEXT_VALUE.gameState),[setGameState])
-  const resetWinState = useCallback(() => setWinState({}),[setWinState])
+  const boardMap = useMemo<IGameBoard>(() => getBoardFromStepHistory(playerStepHistory, DEFAULT_BOARD_SIZE),[playerStepHistory])
+  const resetGameBoardState = useCallback(() => setGameBoardState({ type: DEFAULT_CONTEXT_VALUE.gameState }),[setGameBoardState])
   const resetOptions = useCallback(() => setOptions(DEFAULT_CONTEXT_VALUE.options),[setOptions])
   const resetPlayerStepHistory = useCallback(() => setPlayerStepHistory(GAME_EMPTY_PLAYER_STEP_HISTORY),[setPlayerStepHistory])
 
   useEffect(() => {
-    applyFromPlayerStepHistory(playerStepHistory)
-  },[playerStepHistory, applyFromPlayerStepHistory])
-  useEffect(() => {
+    if(gameBoardState.type != GameState.running) return;
     const boardState = checkGamePlayerStep(playerStepHistory, boardMap)
-    setGameState(boardState.type)
-    setWinState({
-      winnerPlayer: boardState.winner,
-      winChainCoors: boardState.winCoors,
-    })
-  },[playerStepHistory, boardMap])
+    setGameBoardState(boardState)
+  },[playerStepHistory])
 
   const pushStepHistory = useCallback((player: IGamePlayer, coordinate: IGameBoardCoordinate) => setPlayerStepHistory(oldHistory => {
     const newHistory: IGamePlayerStepHistory = {
@@ -45,61 +40,53 @@ export function GameProvider({ children }: React.PropsWithChildren) {
   }),[setPlayerStepHistory, options.mode])
 
   const doTurn = useCallback((coordinate: IGameBoardCoordinate) => {
-    if(getPlayerInBoard(coordinate) == null) {
-      // const boardState = checkGameTurn(coordinate, nextBoardState(boardMap, { coordinate, player: currentPlayer }))
+    if(getPlayerInBoard(boardMap,coordinate) == null) {
       pushStepHistory(currentPlayer, coordinate)
-      // setGameState(boardState.type)
-      // setWinState({
-      //   winnerPlayer: boardState.winner,
-      //   winChainCoors: boardState.winCoors,
-      // })
       setNextPlayer()
     }
   },[boardMap, currentPlayer, pushStepHistory])
 
   const nextGame = useCallback(() => {
-    resetBoard()
     resetPlayerStepHistory()
     resetTurn()
-    setGameState(GameState.running)
-    resetWinState()
-  },[resetBoard,resetTurn,setGameState,resetWinState])
+    setGameBoardState({ type: GameState.running })
+  },[resetPlayerStepHistory,resetTurn,setGameBoardState])
 
   const newGame = useCallback(() => {
     // @TODO reset score and more
-    nextGame()
-    resetGameState()
-  },[nextGame,resetGameState])
+    resetPlayerStepHistory()
+    resetTurn()
+    resetGameBoardState()
+  },[resetPlayerStepHistory,resetTurn,resetGameBoardState])
 
   const startGame = useCallback((options: IGameOptions) => {
     setOptions(options)
-    setGameState(GameState.running)
+    setGameBoardState({ type: GameState.running })
   },[])
 
   useEffect(() => {
-    console.log('ss',gameState)
-    if(gameState == GameState.over) {
-      alert(`Winner : ${winState.winnerPlayer}`)
+    if(gameBoardState.type == GameState.over) {
+      alert(`Winner : ${gameBoardState.winner}`)
       newGame()
-    } else if(gameState == GameState.draw) {
+    } else if(gameBoardState.type == GameState.draw) {
       alert('Game Draw')
       nextGame()
     }
-  },[gameState])
+  },[gameBoardState])
 
   const value = useMemo<IGameContext>(() => ({
     currentPlayer,
     boardMap,
-    gameState,
-    winnerPlayer: winState.winnerPlayer,
-    winChainCoors: winState.winChainCoors,
+    gameState: gameBoardState.type,
+    winnerPlayer: gameBoardState.winner,
+    winChainCoors: gameBoardState.winCoors,
     doTurn,
     newGame,
     nextGame,
     startGame,
     options,
     resetOptions,
-  }),[currentPlayer, boardMap, gameState, winState, doTurn, nextGame, newGame, startGame, options, resetOptions])
+  }),[currentPlayer, boardMap, gameBoardState, doTurn, nextGame, newGame, startGame, options, resetOptions])
 
   return <GameContext.Provider value={value}>{children}</GameContext.Provider>
 }
