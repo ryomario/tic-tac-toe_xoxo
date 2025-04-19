@@ -14,7 +14,7 @@ export function GameProvider({ children }: React.PropsWithChildren) {
   })
   const [options, setOptions] = useState<IGameOptions>(DEFAULT_CONTEXT_VALUE.options)
   const [playerStepHistory, setPlayerStepHistory] = useState<IGamePlayerStepHistory>(GAME_EMPTY_PLAYER_STEP_HISTORY)
-  const boardMap = useMemo<IGameBoard>(() => getBoardFromStepHistory(playerStepHistory, 3),[playerStepHistory])
+  const boardMap = useMemo<IGameBoard>(() => getBoardFromStepHistory(playerStepHistory, DEFAULT_BOARD_SIZE),[playerStepHistory])
   const willBeRemovedFromBoard = useMemo<IGameBoardCoordinate|undefined>(() => {
     if(playerStepHistory[currentPlayer].length < GAME_MAX_STEP_HISTORY || options.mode != GameMode.endless) return;
     return playerStepHistory[currentPlayer][0]
