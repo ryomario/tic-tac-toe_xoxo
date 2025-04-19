@@ -1,3 +1,4 @@
+import { useCallback } from "react"
 import { IGamePlayer } from "../../../types"
 import { GamePlayer } from "../../player/Player"
 import "./index.css"
@@ -16,12 +17,13 @@ export function GameBoardCell({
   size,
 }: Props) {
   const showNextPlayer = !player && !!nextPlayer
+  const getScale = useCallback((p: IGamePlayer) => p == 'o' ? 0.75 : 0.6,[])
   return (
     <div className="game-board-cell" {...(onClick && {role: "button", onClick})} style={{
       width: size
     }}>
-      {player && <GamePlayer player={player} scale={0.75}/>}
-      {showNextPlayer && <GamePlayer player={nextPlayer} scale={0.75} className="game-board-cell-next-player"/>}
+      {player && <GamePlayer player={player} scale={getScale(player)}/>}
+      {showNextPlayer && <GamePlayer player={nextPlayer} scale={getScale(nextPlayer)} className="game-board-cell-next-player"/>}
     </div>
   )
 }

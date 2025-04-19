@@ -1,6 +1,7 @@
 import './App.css'
 import { useGameContext } from './context/gameContext'
 import { GameBoard, GamePlayer, NewGameDialog } from './components'
+import { GameOverDialog } from './components/dialog/gameOverDialog'
 
 function App() {
   const { currentPlayer } = useGameContext()
@@ -21,6 +22,7 @@ function App() {
 
       <GameBoard />
       <NewGameDialog />
+      <GameOverDialog />
     </>
   )
 }

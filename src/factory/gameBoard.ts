@@ -129,7 +129,6 @@ function checkRightDiagState(k: number,board: IGameBoard): IGameBoardState|null 
   let end_i = Math.min(size, size+k)
   for(let i = start_i; i < end_i; i++) {
     const col = size -1 + k-i, row = i
-    console.log('k:'+k,col,row)
     const board_cell = board[row][col]
     if(board_cell != null) {
       if(c_player != board_cell) {

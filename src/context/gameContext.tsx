@@ -64,16 +64,6 @@ export function GameProvider({ children }: React.PropsWithChildren) {
     setGameBoardState({ type: GameState.running })
   },[])
 
-  useEffect(() => {
-    if(gameBoardState.type == GameState.over) {
-      alert(`Winner : ${gameBoardState.winner}`)
-      newGame()
-    } else if(gameBoardState.type == GameState.draw) {
-      alert('Game Draw')
-      nextGame()
-    }
-  },[gameBoardState])
-
   const value = useMemo<IGameContext>(() => ({
     currentPlayer,
     boardMap,

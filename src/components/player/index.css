@@ -24,7 +24,7 @@
   position: absolute;
   top: 50%;
   left: 50%;
-  width: var(--scale);
+  width: calc(var(--scale) * sqrt(2) - var(--line-size) / 2);
   height: var(--line-size);
   border-radius: 9999px;
   background-color: var(--color);
