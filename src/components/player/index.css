@@ -4,6 +4,7 @@
   --line-size: 1em;
   --color: #fff;
   --scale: 70%;
+  transition: display opacity 300ms;
 }
 .game-player .game-player-ratio-helper {
   width: 100%;
@@ -11,11 +12,11 @@
 }
 
 .game-player.player-x {
-  --color: #f00;
+  --color: var(--color-x);
 }
 
 .game-player.player-o {
-  --color: #00f;
+  --color: var(--color-o);
 }
 
 .game-player.player-x::before,

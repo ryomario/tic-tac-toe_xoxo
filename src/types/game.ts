@@ -20,6 +20,7 @@ export interface IGameContext {
   startGame: (options: any) => void
   options: IGameOptions
   resetOptions: () => void
+  willBeRemovedFromBoard?: IGameBoardCoordinate
 }
 
 export enum GameMode {

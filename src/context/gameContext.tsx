@@ -14,6 +14,10 @@ export function GameProvider({ children }: React.PropsWithChildren) {
   const [options, setOptions] = useState<IGameOptions>(DEFAULT_CONTEXT_VALUE.options)
   const [playerStepHistory, setPlayerStepHistory] = useState<IGamePlayerStepHistory>(GAME_EMPTY_PLAYER_STEP_HISTORY)
   const boardMap = useMemo<IGameBoard>(() => getBoardFromStepHistory(playerStepHistory, DEFAULT_BOARD_SIZE),[playerStepHistory])
+  const willBeRemovedFromBoard = useMemo<IGameBoardCoordinate|undefined>(() => {
+    if(playerStepHistory[currentPlayer].length < GAME_MAX_STEP_HISTORY || options.mode != GameMode.endless) return;
+    return playerStepHistory[currentPlayer][0]
+  },[playerStepHistory,currentPlayer,options.mode])
   const resetGameBoardState = useCallback(() => setGameBoardState({ type: DEFAULT_CONTEXT_VALUE.gameState }),[setGameBoardState])
   const resetOptions = useCallback(() => setOptions(DEFAULT_CONTEXT_VALUE.options),[setOptions])
   const resetPlayerStepHistory = useCallback(() => setPlayerStepHistory(GAME_EMPTY_PLAYER_STEP_HISTORY),[setPlayerStepHistory])
@@ -76,7 +80,8 @@ export function GameProvider({ children }: React.PropsWithChildren) {
     startGame,
     options,
     resetOptions,
-  }),[currentPlayer, boardMap, gameBoardState, doTurn, nextGame, newGame, startGame, options, resetOptions])
+    willBeRemovedFromBoard,
+  }),[currentPlayer, boardMap, gameBoardState, doTurn, nextGame, newGame, startGame, options, resetOptions, willBeRemovedFromBoard])
 
   return <GameContext.Provider value={value}>{children}</GameContext.Provider>
 }

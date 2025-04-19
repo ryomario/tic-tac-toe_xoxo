@@ -7,7 +7,7 @@ const BOARD_SIZE = '90vw'
 const BOARD_MAX_SIZE = '500px'
 
 export function GameBoard() {
-  const { boardMap, currentPlayer, doTurn } = useGameContext()
+  const { boardMap, currentPlayer, doTurn, willBeRemovedFromBoard } = useGameContext()
 
   const boardSize = useMemo(() => {
     const rowLength = boardMap.length
@@ -38,6 +38,7 @@ export function GameBoard() {
               {...((cell == null) && { onClick() { doTurn([col, row]) } })}
               size={boardSize.col}
               nextPlayer={currentPlayer}
+              willBeRemoved={willBeRemovedFromBoard && willBeRemovedFromBoard[1] == row && willBeRemovedFromBoard[0] == col}
             />
           ))}</div>
         ))}

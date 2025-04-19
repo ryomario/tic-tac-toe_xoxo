@@ -15,10 +15,10 @@
 
 .game-board-cell-next-player {
   position: absolute;
-  opacity: 0;
+  opacity: 0 !important;
   transition: opacity 100ms;
   --color: var(--text-color) !important;
 }
 .game-board-cell:hover .game-board-cell-next-player {
-  opacity: 0.1;
+  opacity: 0.1 !important;
 }

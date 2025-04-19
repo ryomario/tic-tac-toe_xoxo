@@ -9,6 +9,7 @@ type Props = {
   scale?: IPercentage
   position?: 'static'|'absolute'
   className?: string|string[]
+  opacity?: number
 }
 
 export function GamePlayer({
@@ -17,6 +18,7 @@ export function GamePlayer({
   size = "100%",
   className = '',
   scale,
+  opacity = 1,
 }: Props) {
   const classes = [
     "game-player",`player-${player}`,
@@ -35,6 +37,7 @@ export function GamePlayer({
       // @ts-ignore
       "--line-size": lineSize,
       "--scale": __scale,
+      opacity,
     }}><div className="game-player-ratio-helper"></div></div>
   )
 }
