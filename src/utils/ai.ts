@@ -9,6 +9,12 @@ type IAction = IGameBoardTurn & {
   minimaxVal: number
 }
 
+type IMinimaxOptions = {
+  aiPlayer: IGamePlayer
+  depth?: number
+  maxDepth?: number
+}
+
 export type AIWorkerMessages = {
   state: IState
   aiPlayer: IGamePlayer
@@ -27,7 +33,8 @@ const IAction_DESCENDING = function(act1: IAction,act2: IAction) {
 export const aiTurn = (state: IState, aiPlayer: IGamePlayer) => new Promise<IGameBoardCoordinate>((resolve, reject) => {
   const worker = createWorker('../workers/aiWorker.ts', (coordinate) => {
     if(coordinate) resolve(coordinate as IGameBoardCoordinate)
-    // else reject('AI Move not calculated')
+    // else console.log('AI Move not calculated')
+    worker.terminate()
   })
 
   worker.postMessage({
@@ -54,7 +61,7 @@ export function calculateAIMove(state: IState, aiPlayer: IGamePlayer) {
     act.minimaxVal = minimaxValue({
       board: nextBoard,
       currentPlayer: getNextPlayer(state.currentPlayer),
-    }, aiPlayer)
+    }, {aiPlayer, depth: 1})
 
     return act
   })
@@ -75,12 +82,14 @@ export function calculateAIMove(state: IState, aiPlayer: IGamePlayer) {
   return null
 }
 
-function minimaxValue(state: IState, aiPlayer: IGamePlayer) {
+function minimaxValue(state: IState, {aiPlayer, depth = 0, maxDepth = 5}: IMinimaxOptions) {
   const boardState = checkGameBoardState(state.board)
   if(boardState.type == GameState.draw) return 0
   else if(boardState.type == GameState.over) {
-    if(boardState.winner != aiPlayer) return 10
-    return -10
+    if(boardState.winner != aiPlayer) return 1
+    return -1
+  } else if(depth > maxDepth) {
+    return 0
   } else {
     let score: number
     if(state.currentPlayer != aiPlayer)score = -1000
@@ -100,7 +109,7 @@ function minimaxValue(state: IState, aiPlayer: IGamePlayer) {
     })
 
     availableStates.forEach(nextState => {
-      const nextScore = minimaxValue(nextState, aiPlayer)
+      const nextScore = minimaxValue(nextState, {aiPlayer, depth: depth + 1})
       if(state.currentPlayer != aiPlayer) {
         if(nextScore > score) score = nextScore
       } else {
