@@ -21,6 +21,7 @@ export interface IGameContext {
   options: IGameOptions
   resetOptions: () => void
   willBeRemovedFromBoard?: IGameBoardCoordinate
+  isAITurnLoading?: boolean
 }
 
 export enum GameMode {
@@ -37,6 +38,7 @@ export enum GameDifficulty {
 export interface IGameOptions {
   mode: GameMode
   isVsAI?: boolean
+  aiPlayer?: IGamePlayer
   difficulty: GameDifficulty
 }
 

@@ -7,7 +7,7 @@ const BOARD_SIZE = '90vw'
 const BOARD_MAX_SIZE = '500px'
 
 export function GameBoard() {
-  const { boardMap, currentPlayer, doTurn, willBeRemovedFromBoard } = useGameContext()
+  const { boardMap, currentPlayer, doTurn, willBeRemovedFromBoard, isAITurnLoading } = useGameContext()
 
   const boardSize = useMemo(() => {
     const rowLength = boardMap.length
@@ -21,7 +21,7 @@ export function GameBoard() {
 
   return (
     <>
-      <div className="game-board" style={{
+      <div className={`game-board ${isAITurnLoading?'loading':''}`} style={{
         width: BOARD_SIZE,
         height: BOARD_SIZE,
         maxWidth: BOARD_MAX_SIZE,

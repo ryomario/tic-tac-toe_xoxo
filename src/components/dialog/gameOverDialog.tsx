@@ -1,14 +1,12 @@
 import { createPortal } from "react-dom";
 import { useGameContext } from "../../context/gameContext";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 import "./index.css"
-import { Select } from "./select";
-import { GameState, IGameOptions } from "../../types";
-import { GAME_DIFFICULTIES, GAME_MODES } from "../../factory";
+import { GameState } from "../../types";
 import { GamePlayer } from "../player/Player";
 
 export function GameOverDialog() {
-  const { gameState, newGame, options: { isVsAI },
+  const { gameState, newGame, options: { isVsAI, aiPlayer },
     winnerPlayer,
   } = useGameContext()
   const isOpen = useMemo(() => gameState == GameState.over || gameState == GameState.draw,[gameState])
@@ -30,17 +28,20 @@ export function GameOverDialog() {
   return createPortal(<>
     <dialog ref={dialogRef}>
       <header>
-        {isVsAI && 'Game Over!'}
-        {(!isVsAI && gameState == GameState.draw) && 'Draw!'}
+        {(isVsAI && gameState == GameState.over && winnerPlayer == aiPlayer) && 'Game Over!'}
+        {(isVsAI && gameState == GameState.over && winnerPlayer != aiPlayer) && 'You Wins!'}
+        {(gameState == GameState.draw) && 'Draw!'}
         {(!isVsAI && gameState != GameState.draw) && 'Winner!'}
       </header>
       <main>
-        {isVsAI && 'AI Wins!'}
+        {(isVsAI && gameState == GameState.over && winnerPlayer == aiPlayer) && 'You LOSE from AI!'}
+        {(isVsAI && gameState == GameState.over && winnerPlayer != aiPlayer) && 'Congratulations, you have successfully defeated the AI.'}
         {(!isVsAI && !!winnerPlayer) && <GamePlayer player={winnerPlayer} size="100px" lineSize="15px" scale={0.8}/>}
-        {(!isVsAI && gameState == GameState.draw) && <div style={{ display: 'flex' }}>
+        {(gameState == GameState.draw) && <div style={{ display: 'flex' }}>
           <GamePlayer player="o" size="100px" lineSize="15px" scale={0.8}/>
           <GamePlayer player="x" size="100px" lineSize="15px" scale={0.8}/>
         </div>}
+        {(isVsAI && gameState == GameState.draw) && 'Better luck next time.'}
       </main>
       <footer>
         <button

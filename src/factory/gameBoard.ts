@@ -16,6 +16,18 @@ export function generateBoard(size: number, fill: IGamePlayer|null = null): IGam
   return board
 }
 
+export function getEmptyBoardCells(board: IGameBoard) {
+  const emptyCells: IGameBoardCoordinate[] = []
+  for(let row = 0; row < board.length; row++) {
+    for(let col = 0; col < board[row].length; col++) {
+      if(board[row][col] == null) {
+        emptyCells.push([col, row])
+      }
+    }
+  }
+  return emptyCells
+}
+
 export function getBoardFromStepHistory(playerStepHistory: IGamePlayerStepHistory, boardSize: number) {
   let newBoard = generateBoard(boardSize)
   for (const key in playerStepHistory) {
