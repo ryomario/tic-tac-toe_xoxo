@@ -39,6 +39,8 @@ export interface IGameOptions {
   isVsAI?: boolean
   aiPlayer?: IGamePlayer
   difficulty: GameDifficulty
+  maxStepHistory: number
+  boardSize: number
 }
 
 export type IGameStepHistory = IGameBoardCoordinate[]

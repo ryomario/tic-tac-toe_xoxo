@@ -1,7 +1,8 @@
 import { GameDifficulty, GameMode, GameState, IGameContext, IGamePlayerStepHistory } from "../types";
 import { generateBoard } from "./gameBoard";
 
-export const GAME_MAX_STEP_HISTORY = 3
+export const DEFAULT_BOARD_SIZE = 3
+export const GAME_MAX_STEP_HISTORY = DEFAULT_BOARD_SIZE
 
 export const DEFAULT_CONTEXT_VALUE: IGameContext = {
   currentPlayer: 'o',
@@ -15,6 +16,8 @@ export const DEFAULT_CONTEXT_VALUE: IGameContext = {
     mode: GameMode.normal,
     isVsAI: false,
     difficulty: GameDifficulty.medium,
+    maxStepHistory: GAME_MAX_STEP_HISTORY,
+    boardSize: DEFAULT_BOARD_SIZE,
   },
 }
 

@@ -1,9 +1,10 @@
-import { checkGameBoardState, getEmptyBoardCells, getNextPlayer, nextBoardState } from "../factory";
-import { GameState, IGameBoard, IGameBoardCoordinate, IGameBoardTurn, IGamePlayer } from "../types";
+import { checkGameBoardState, getBoardFromStepHistory, getEmptyBoardCells, getNextPlayer, pushStepHistory } from "../factory";
+import { GameState, IGameBoardCoordinate, IGameBoardTurn, IGameOptions, IGamePlayer, IGamePlayerStepHistory } from "../types";
 
 type IState = {
-  board: IGameBoard
   currentPlayer: IGamePlayer
+  stepHistory: IGamePlayerStepHistory
+  gameOptions: IGameOptions
 }
 type IAction = IGameBoardTurn & {
   minimaxVal: number
@@ -41,7 +42,7 @@ export const aiTurn = (state: IState, aiPlayer: IGamePlayer, maxDepth = 10) => n
   worker.postMessage({
     state,
     aiPlayer,
-    maxDepth
+    maxDepth,
   } as AIWorkerMessages)
 
   return () => worker.terminate()
@@ -51,7 +52,7 @@ export const aiTurn = (state: IState, aiPlayer: IGamePlayer, maxDepth = 10) => n
  * Slow process on board grid size > 3
  */
 export function calculateAIMove(state: IState, aiPlayer: IGamePlayer, maxDepth = 10) {
-  const available = getEmptyBoardCells(state.board)
+  const available = getEmptyBoardCells(getBoardFromStepHistory(state.stepHistory, state.gameOptions.boardSize))
   
   const availableActs = available.map(coordinate => {
     const act: IAction = {
@@ -59,10 +60,11 @@ export function calculateAIMove(state: IState, aiPlayer: IGamePlayer, maxDepth =
       player: state.currentPlayer,
       minimaxVal: 0
     }
-    const nextBoard = nextBoardState(state.board, act)
+    const nextStepHis = pushStepHistory(state.stepHistory, state.currentPlayer, coordinate, state.gameOptions)
     act.minimaxVal = minimaxValue({
-      board: nextBoard,
+      stepHistory: nextStepHis,
       currentPlayer: getNextPlayer(state.currentPlayer),
+      gameOptions: state.gameOptions,
     }, {aiPlayer, depth: 1, maxDepth})
 
     return act
@@ -85,7 +87,8 @@ export function calculateAIMove(state: IState, aiPlayer: IGamePlayer, maxDepth =
 }
 
 function minimaxValue(state: IState, {aiPlayer, depth = 0, maxDepth = 5}: IMinimaxOptions) {
-  const boardState = checkGameBoardState(state.board)
+  const board = getBoardFromStepHistory(state.stepHistory, state.gameOptions.boardSize)
+  const boardState = checkGameBoardState(board)
   if(boardState.type == GameState.draw) return 0
   else if(boardState.type == GameState.over) {
     if(boardState.winner != aiPlayer) return 1
@@ -97,16 +100,13 @@ function minimaxValue(state: IState, {aiPlayer, depth = 0, maxDepth = 5}: IMinim
     if(state.currentPlayer != aiPlayer)score = -1000
     else score = 1000
 
-    const available = getEmptyBoardCells(state.board)
+    const available = getEmptyBoardCells(board)
     const availableStates = available.map(coordinate => {
-      const turn: IGameBoardTurn = {
-        coordinate,
-        player: state.currentPlayer,
-      }
-      const nextBoard = nextBoardState(state.board, turn)
+      const nextStepHis = pushStepHistory(state.stepHistory, state.currentPlayer, coordinate, state.gameOptions)
       return {
-        board: nextBoard,
+        stepHistory: nextStepHis,
         currentPlayer: getNextPlayer(state.currentPlayer),
+        gameOptions: state.gameOptions,
       } as IState
     })
 

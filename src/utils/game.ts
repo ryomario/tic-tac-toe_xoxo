@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { checkGameBoardState, DEFAULT_BOARD_SIZE, DEFAULT_CONTEXT_VALUE, GAME_EMPTY_PLAYER_STEP_HISTORY, GAME_MAX_STEP_HISTORY, getBoardFromStepHistory, getNextPlayer, getPlayerInBoard, randomPlayer } from "../factory";
+import { checkGameBoardState, DEFAULT_CONTEXT_VALUE, GAME_EMPTY_PLAYER_STEP_HISTORY, getBoardFromStepHistory, getNextPlayer, getPlayerInBoard, pushStepHistory, randomPlayer } from "../factory";
 import { GameDifficulty, GameMode, GameState, IGameBoard, IGameBoardCoordinate, IGameBoardState, IGameOptions, IGamePlayer, IGamePlayerStepHistory } from "../types";
 import { aiTurn } from "./ai";
 
@@ -9,8 +9,6 @@ export class Game {
   private _gameBoardState: IGameBoardState = { type: DEFAULT_CONTEXT_VALUE.gameState };
 
   private _playerStepHistory: IGamePlayerStepHistory = GAME_EMPTY_PLAYER_STEP_HISTORY;
-  boardSize: number = DEFAULT_BOARD_SIZE;
-  maxStepHistory: number = GAME_MAX_STEP_HISTORY;
 
   private _aiTurn: boolean = false;
 
@@ -25,11 +23,6 @@ export class Game {
     this.options = DEFAULT_CONTEXT_VALUE.options
     this.currentPlayer = randomPlayer()
     this.playerStepHistory = GAME_EMPTY_PLAYER_STEP_HISTORY
-    this.boardSize = DEFAULT_BOARD_SIZE
-    this.maxStepHistory = GAME_MAX_STEP_HISTORY
-
-    this.triggerChange('boardSize', this.boardSize)
-    this.triggerChange('maxStepHistory', this.maxStepHistory)
   }
 
   get maxAIMinimaxDepth() {
@@ -65,10 +58,10 @@ export class Game {
   }
 
   get board() {
-    return getBoardFromStepHistory(this.playerStepHistory, this.boardSize)
+    return getBoardFromStepHistory(this.playerStepHistory, this.options.boardSize)
   }
   get cellWillBeRemoved() {
-    if(this.playerStepHistory[this.currentPlayer].length < this.maxStepHistory || this.options.mode != GameMode.endless) return;
+    if(this.playerStepHistory[this.currentPlayer].length < this.options.maxStepHistory || this.options.mode != GameMode.endless) return;
     return this.playerStepHistory[this.currentPlayer][0]
   }
 
@@ -114,17 +107,7 @@ export class Game {
   }
 
   pushStepHistory(player: IGamePlayer, coordinate: IGameBoardCoordinate) {
-    const oldHistory = this.playerStepHistory
-    const newHistory: IGamePlayerStepHistory = {
-      x: [ ...oldHistory.x ],
-      o: [ ...oldHistory.o ],
-    }
-    const playerHis = newHistory[player]
-    playerHis.push(coordinate)
-    if(this.options.mode == GameMode.endless && playerHis.length > this.maxStepHistory) {
-      playerHis.shift()
-    }
-    newHistory[player] = playerHis
+    const newHistory = pushStepHistory(this.playerStepHistory, player, coordinate, this.options)
 
     this.playerStepHistory = newHistory
 
@@ -133,8 +116,9 @@ export class Game {
   
   doTurn(coordinate: IGameBoardCoordinate) {
     if(getPlayerInBoard(this.board,coordinate) == null) {
-      this.pushStepHistory(this.currentPlayer, coordinate)
+      const currentPlayer = this.currentPlayer
       this.setNextPlayer()
+      this.pushStepHistory(currentPlayer, coordinate)
       if(this.gameBoardState.type == GameState.running) {        
         this.doAITurn()
       }
@@ -147,11 +131,13 @@ export class Game {
     if(this.currentPlayer != this.options.aiPlayer) return;
 
     this.isAITurn = true
-    const board = this.board
+    const gameOptions = this.options
     const currentPlayer = this.currentPlayer
+    const stepHistory = this.playerStepHistory
     aiTurn({
-      board,
       currentPlayer,
+      stepHistory,
+      gameOptions,
     }, this.options.aiPlayer, this.maxAIMinimaxDepth).then(coordinate => {
       this.doTurn(coordinate)
     }).finally(() => {

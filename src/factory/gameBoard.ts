@@ -1,7 +1,5 @@
-import { GameState, IGameBoard, IGameBoardCoordinate, IGameBoardState, IGameBoardTurn, IGamePlayer, IGamePlayerStepHistory, IGameStepHistory } from "../types";
+import { GameMode, GameState, IGameBoard, IGameBoardCoordinate, IGameBoardState, IGameBoardTurn, IGameOptions, IGamePlayer, IGamePlayerStepHistory, IGameStepHistory } from "../types";
 import { GAME_MAX_STEP_HISTORY } from "./game";
-
-export const DEFAULT_BOARD_SIZE = 3
 
 export const WIN_MIN_CHAIN = GAME_MAX_STEP_HISTORY
 
@@ -37,6 +35,22 @@ export function getBoardFromStepHistory(playerStepHistory: IGamePlayerStepHistor
     })
   }
   return newBoard
+}
+
+export function pushStepHistory(playerStepHistory: IGamePlayerStepHistory, player: IGamePlayer, coordinate: IGameBoardCoordinate, options: IGameOptions) {
+  const oldHistory = playerStepHistory
+  const newHistory: IGamePlayerStepHistory = {
+    x: [ ...oldHistory.x ],
+    o: [ ...oldHistory.o ],
+  }
+  const playerHis = newHistory[player]
+  playerHis.push(coordinate)
+  if(options.mode == GameMode.endless && playerHis.length > options.maxStepHistory) {
+    playerHis.shift()
+  }
+  newHistory[player] = playerHis
+
+  return newHistory
 }
 
 export function nextBoardState(board: IGameBoard, turn: IGameBoardTurn) {
