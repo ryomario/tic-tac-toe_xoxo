@@ -16,7 +16,6 @@ export const DEFAULT_CONTEXT_VALUE: IGameContext = {
     isVsAI: false,
     difficulty: GameDifficulty.medium,
   },
-  resetOptions: () => {},
 }
 
 export const GAME_MODES: GameMode[] = [

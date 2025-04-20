@@ -19,7 +19,6 @@ export interface IGameContext {
   newGame: () => void
   startGame: (options: any) => void
   options: IGameOptions
-  resetOptions: () => void
   willBeRemovedFromBoard?: IGameBoardCoordinate
   isAITurnLoading?: boolean
 }

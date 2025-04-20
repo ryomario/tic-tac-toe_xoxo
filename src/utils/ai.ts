@@ -18,6 +18,7 @@ type IMinimaxOptions = {
 export type AIWorkerMessages = {
   state: IState
   aiPlayer: IGamePlayer
+  maxDepth?: number
 }
 const IAction_ASCENDING = function(act1: IAction,act2: IAction) {
   if(act1.minimaxVal < act2.minimaxVal)return -1
@@ -30,7 +31,7 @@ const IAction_DESCENDING = function(act1: IAction,act2: IAction) {
   return 0
 }
 
-export const aiTurn = (state: IState, aiPlayer: IGamePlayer) => new Promise<IGameBoardCoordinate>((resolve, reject) => {
+export const aiTurn = (state: IState, aiPlayer: IGamePlayer, maxDepth = 10) => new Promise<IGameBoardCoordinate>((resolve, reject) => {
   const worker = createWorker('../workers/aiWorker.ts', (coordinate) => {
     if(coordinate) resolve(coordinate as IGameBoardCoordinate)
     // else console.log('AI Move not calculated')
@@ -39,7 +40,8 @@ export const aiTurn = (state: IState, aiPlayer: IGamePlayer) => new Promise<IGam
 
   worker.postMessage({
     state,
-    aiPlayer
+    aiPlayer,
+    maxDepth
   } as AIWorkerMessages)
 
   return () => worker.terminate()
@@ -48,7 +50,7 @@ export const aiTurn = (state: IState, aiPlayer: IGamePlayer) => new Promise<IGam
 /**
  * Slow process on board grid size > 3
  */
-export function calculateAIMove(state: IState, aiPlayer: IGamePlayer) {
+export function calculateAIMove(state: IState, aiPlayer: IGamePlayer, maxDepth = 10) {
   const available = getEmptyBoardCells(state.board)
   
   const availableActs = available.map(coordinate => {
@@ -61,7 +63,7 @@ export function calculateAIMove(state: IState, aiPlayer: IGamePlayer) {
     act.minimaxVal = minimaxValue({
       board: nextBoard,
       currentPlayer: getNextPlayer(state.currentPlayer),
-    }, {aiPlayer, depth: 1})
+    }, {aiPlayer, depth: 1, maxDepth})
 
     return act
   })
