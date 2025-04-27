@@ -1,5 +1,6 @@
 import { checkGameBoardState, getBoardFromStepHistory, getEmptyBoardCells, getNextPlayer, pushStepHistory } from "../factory";
 import { GameState, IGameBoardCoordinate, IGameBoardTurn, IGameOptions, IGamePlayer, IGamePlayerStepHistory } from "../types";
+import AIWorker from "../workers/aiWorker?worker"
 
 type IState = {
   currentPlayer: IGamePlayer
@@ -33,11 +34,12 @@ const IAction_DESCENDING = function(act1: IAction,act2: IAction) {
 }
 
 export const aiTurn = (state: IState, aiPlayer: IGamePlayer, maxDepth = 10) => new Promise<IGameBoardCoordinate>((resolve, _reject) => {
-  const worker = createWorker('../workers/aiWorker.ts', (coordinate) => {
-    if(coordinate) resolve(coordinate as IGameBoardCoordinate)
+  const worker = new AIWorker()
+  worker.onmessage = (event: { data: IGameBoardCoordinate }) => {
+    if(event.data) resolve(event.data)
     // else console.log('AI Move not calculated')
     worker.terminate()
-  })
+  }
 
   worker.postMessage({
     state,
@@ -122,9 +124,3 @@ function minimaxValue(state: IState, {aiPlayer, depth = 0, maxDepth = 5}: IMinim
     return score
   }
 }
-
-export const createWorker = <T>(url: string, callback: (data: T) => void): Worker => {
-  const worker = new Worker(new URL(url, import.meta.url), { type: 'module' })
-  worker.onmessage = (event: { data: T }) => callback(event.data)
-  return worker
-};
