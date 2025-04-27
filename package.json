@@ -1,6 +1,7 @@
 {
   "name": "tic-tac-toe_xoxo",
   "private": true,
+  "homepage": "https://ryomario.github.io/tic-tac-toe_xoxo",
   "version": "0.0.0",
   "type": "module",
   "scripts": {
