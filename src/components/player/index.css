@@ -1,0 +1,52 @@
+.game-player {
+  display: inline-block;
+  position: relative;
+  --line-size: 1em;
+  --color: #fff;
+  --scale: 70%;
+  transition: display opacity 300ms;
+}
+.game-player .game-player-ratio-helper {
+  width: 100%;
+  padding-bottom: 100%;
+}
+
+.game-player.player-x {
+  --color: var(--color-x);
+}
+
+.game-player.player-o {
+  --color: var(--color-o);
+}
+
+.game-player.player-x::before,
+.game-player.player-x::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: calc(var(--scale) * sqrt(2) - var(--line-size) / 2);
+  height: var(--line-size);
+  border-radius: 9999px;
+  background-color: var(--color);
+  transform-origin: center;
+}
+.game-player.player-x::before {
+  transform: translate(-50%, -50%) rotate(45deg);
+}
+.game-player.player-x::after {
+  transform: translate(-50%, -50%) rotate(-45deg);
+}
+
+.game-player.player-o::before {
+  content: '';
+  position: absolute;
+  
+  top: 50%;
+  left: 50%;
+  width: var(--scale);
+  height: var(--scale);
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 var(--line-size) var(--color);
+  transform: translate(-50%, -50%);
+}

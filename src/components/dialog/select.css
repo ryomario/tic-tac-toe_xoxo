@@ -1,0 +1,38 @@
+dialog .select {
+  display: flex;
+  align-items: baseline;
+  font-size: 0.8rem;
+  font-weight: bold;
+  opacity: 0.9;
+  padding: 0.25em 0;
+  line-height: 1.5;
+
+  & .select-label {
+    width: 100px;
+  }
+
+  & .select-options {
+    display: flex;
+    flex-direction: column;
+
+    & .select-option {
+      display: block;
+      text-align: start;
+      cursor: pointer;
+      opacity: 0.9;
+      transition: opacity 300ms;
+
+      &:hover {
+        opacity: 1;
+      }
+
+      &::before {
+        content: '\0003E\000A0';
+        visibility: hidden;
+      }
+      &.selected::before {
+        visibility: visible;
+      }
+    }
+  }
+}

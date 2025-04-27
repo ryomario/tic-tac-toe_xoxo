@@ -1,0 +1,84 @@
+dialog {
+  display: none;
+
+  &[open] {
+    display: flex;
+    flex-direction: column;
+  }
+
+  background-color: var(--bg-color);
+  outline: none;
+  border: none;
+  padding: 1rem;
+  border-radius: 1rem;
+  min-width: 300px;
+  max-width: calc(100vw - 10px);
+  box-sizing: border-box;
+}
+
+dialog::backdrop {
+  background-color: rgba(0, 0, 0, 0.75);
+}
+
+dialog > header {
+  display: block;
+  font-weight: bold;
+  font-size: 1.75rem;
+  text-align: center;
+  padding-bottom: 1rem;
+}
+dialog > main {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  & .game-options {
+    display: block;
+  }
+}
+
+dialog > footer {
+  display: block;
+  text-align: center;
+  padding-top: 1rem;
+}
+dialog > footer > button {
+  outline: none;
+  border: none;
+
+  background-color: rgb(100, 100, 200);
+  color: rgb(0, 0, 50);
+  font-size: 1rem;
+  text-transform: uppercase;
+  font-weight: bold;
+  padding: 0.5rem 1rem;
+  border-radius: 0.2rem;
+  opacity: 0.8;
+  transition: opacity 100ms linear;
+  box-shadow: inset -0.2rem -0.2rem 0.4rem #0007;
+
+  &:hover {
+    opacity: 1;
+    cursor: pointer;
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  dialog {
+    transition-property: display overlay;
+    transition-duration: 300ms;
+    transition-timing-function: cubic-bezier(0, 0.8, 0.4, 1.2);
+    transition-behavior: allow-discrete;
+
+    opacity: 0;
+    scale: 0.5;
+    &[open] {    
+      opacity: 1;
+      scale: 1;
+
+      @starting-style {
+        opacity: 0;
+        scale: 0.5;
+      }
+    }
+  }
+}
