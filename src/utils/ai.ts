@@ -32,7 +32,7 @@ const IAction_DESCENDING = function(act1: IAction,act2: IAction) {
   return 0
 }
 
-export const aiTurn = (state: IState, aiPlayer: IGamePlayer, maxDepth = 10) => new Promise<IGameBoardCoordinate>((resolve, reject) => {
+export const aiTurn = (state: IState, aiPlayer: IGamePlayer, maxDepth = 10) => new Promise<IGameBoardCoordinate>((resolve, _reject) => {
   const worker = createWorker('../workers/aiWorker.ts', (coordinate) => {
     if(coordinate) resolve(coordinate as IGameBoardCoordinate)
     // else console.log('AI Move not calculated')

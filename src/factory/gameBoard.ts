@@ -1,4 +1,4 @@
-import { GameMode, GameState, IGameBoard, IGameBoardCoordinate, IGameBoardState, IGameBoardTurn, IGameOptions, IGamePlayer, IGamePlayerStepHistory, IGameStepHistory } from "../types";
+import { GameMode, GameState, IGameBoard, IGameBoardCoordinate, IGameBoardState, IGameBoardTurn, IGameOptions, IGamePlayer, IGamePlayerStepHistory } from "../types";
 import { GAME_MAX_STEP_HISTORY } from "./game";
 
 export const WIN_MIN_CHAIN = GAME_MAX_STEP_HISTORY

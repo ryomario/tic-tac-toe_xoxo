@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { checkGameBoardState, DEFAULT_CONTEXT_VALUE, GAME_EMPTY_PLAYER_STEP_HISTORY, getBoardFromStepHistory, getNextPlayer, getPlayerInBoard, pushStepHistory, randomPlayer } from "../factory";
-import { GameDifficulty, GameMode, GameState, IGameBoard, IGameBoardCoordinate, IGameBoardState, IGameContext, IGameOptions, IGamePlayer, IGamePlayerStepHistory } from "../types";
+import { GameDifficulty, GameMode, GameState, IGameBoard, IGameBoardCoordinate, IGameBoardState, IGameOptions, IGamePlayer, IGamePlayerStepHistory } from "../types";
 import { aiTurn } from "./ai";
 
 type State = {
