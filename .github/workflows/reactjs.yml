@@ -21,7 +21,7 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  BASE_PATH: ${ vars.BASE_PATH }
+  BASE_PATH: /tic-tac-toe_xoxo/
 
 jobs:
   # Build job
