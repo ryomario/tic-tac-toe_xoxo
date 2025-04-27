@@ -1,7 +1,16 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { checkGameBoardState, DEFAULT_CONTEXT_VALUE, GAME_EMPTY_PLAYER_STEP_HISTORY, getBoardFromStepHistory, getNextPlayer, getPlayerInBoard, pushStepHistory, randomPlayer } from "../factory";
-import { GameDifficulty, GameMode, GameState, IGameBoard, IGameBoardCoordinate, IGameBoardState, IGameOptions, IGamePlayer, IGamePlayerStepHistory } from "../types";
+import { GameDifficulty, GameMode, GameState, IGameBoard, IGameBoardCoordinate, IGameBoardState, IGameContext, IGameOptions, IGamePlayer, IGamePlayerStepHistory } from "../types";
 import { aiTurn } from "./ai";
+
+type State = {
+  boardMap: IGameBoard
+  currentPlayer: IGamePlayer
+  options: IGameOptions
+  gameState: IGameBoardState
+  cellWillBeRemoved?: IGameBoardCoordinate
+  isAITurn: boolean
+}
 
 export class Game {
   private _options: IGameOptions = DEFAULT_CONTEXT_VALUE.options;
@@ -95,7 +104,7 @@ export class Game {
     if(idx == -1) return;
     this._changeListeners[attr].splice(idx,1)
   }
-  triggerChange(attr: string, newValue: any) {
+  triggerChange<T>(attr: string, newValue: T) {
     if(!this._changeListeners[attr] || this._changeListeners[attr].length == 0) return;
     for (const callback of this._changeListeners[attr]) {
       if(typeof callback == 'function') callback.call(this, newValue)
@@ -174,68 +183,93 @@ export class Game {
   }
 
   // hooks
-  useCurrentPlayer() {
-    const [player, setPlayer] = useState<IGamePlayer>(this.currentPlayer)
+  useGameState() {
+    const game = this;
+    const [state, _setState] = useState<State>({
+      boardMap: game.board,
+      currentPlayer: game.currentPlayer,
+      options: game.options,
+      gameState: game.gameBoardState,
+      cellWillBeRemoved: game.cellWillBeRemoved,
+      isAITurn: game.isAITurn,
+    })
+
+    const setCurrentPlayer = useCallback((value: IGamePlayer) => {
+      _setState(oldState => {
+        const newState = {
+          ...oldState,
+          currentPlayer: value,
+        }
+        return newState;
+      })
+    },[_setState])
+
+    const setBoard = useCallback((value: IGameBoard) => {
+      _setState(oldState => {
+        const newState = {
+          ...oldState,
+          boardMap: value,
+        }
+        return newState;
+      })
+    },[_setState])
+
+    const setOptions = useCallback((value: IGameOptions) => {
+      _setState(oldState => {
+        const newState = {
+          ...oldState,
+          options: value,
+        }
+        return newState;
+      })
+    },[_setState])
+
+    const setBoardState = useCallback((value: IGameBoardState) => {
+      _setState(oldState => {
+        const newState = {
+          ...oldState,
+          gameState: value,
+        }
+        return newState;
+      })
+    },[_setState])
+
+    const setCellWillBeRemoved = useCallback((value: IGameBoardCoordinate) => {
+      _setState(oldState => {
+        const newState = {
+          ...oldState,
+          cellWillBeRemoved: value,
+        }
+        return newState;
+      })
+    },[_setState])
+
+    const setIsAITurn = useCallback((value: boolean) => {
+      _setState(oldState => {
+        const newState = {
+          ...oldState,
+          isAITurn: value,
+        }
+        return newState;
+      })
+    },[_setState])
 
     useEffect(() => {
-      this.addChangeListener<IGamePlayer>('currentPlayer', setPlayer)
-      return () => this.removeChangeListener<IGamePlayer>('currentPlayer', setPlayer)
-    },[setPlayer])
-
-    return player
-  }
-
-  useBoard() {
-    const [board, setBoard] = useState<IGameBoard>(this.board)
-
-    useEffect(() => {
+      this.addChangeListener<IGamePlayer>('currentPlayer', setCurrentPlayer)
       this.addChangeListener<IGameBoard>('board', setBoard)
-      return () => this.removeChangeListener<IGameBoard>('board', setBoard)
-    },[setBoard])
-
-    return board
-  }
-
-  useOptions() {
-    const [options, setOptions] = useState<IGameOptions>(this.options)
-
-    useEffect(() => {
       this.addChangeListener<IGameOptions>('options', setOptions)
-      return () => this.removeChangeListener<IGameOptions>('options', setOptions)
-    },[setOptions])
-
-    return options
-  }
-
-  useGameBoardState() {
-    const [state, setState] = useState<IGameBoardState>(this.gameBoardState)
-
-    useEffect(() => {
-      this.addChangeListener<IGameBoardState>('gameBoardState', setState)
-      return () => this.removeChangeListener<IGameBoardState>('gameBoardState', setState)
-    },[setState])
-
-    return state
-  }
-
-  useCellWillBeRemoved() {
-    const [state, setState] = useState<IGameBoardCoordinate|undefined>(this.cellWillBeRemoved)
-
-    useEffect(() => {
-      this.addChangeListener<IGameBoardCoordinate>('cellWillBeRemoved', setState)
-      return () => this.removeChangeListener<IGameBoardCoordinate>('cellWillBeRemoved', setState)
-    },[setState])
-
-    return state
-  }
-
-  useIsAITurn() {
-    const [state, setState] = useState<boolean>(this.isAITurn)
-
-    useEffect(() => {
-      this.addChangeListener<boolean>('isAITurn', setState)
-      return () => this.removeChangeListener<boolean>('isAITurn', setState)
-    },[setState])
+      this.addChangeListener<IGameBoardState>('gameBoardState', setBoardState)
+      this.addChangeListener<IGameBoardCoordinate>('cellWillBeRemoved', setCellWillBeRemoved)
+      this.addChangeListener<boolean>('isAITurn', setIsAITurn)
+      return () => {
+        this.removeChangeListener<IGamePlayer>('currentPlayer', setCurrentPlayer)
+        this.removeChangeListener<IGameBoard>('board', setBoard)
+        this.removeChangeListener<IGameOptions>('options', setOptions)
+        this.removeChangeListener<IGameBoardState>('gameBoardState', setBoardState)
+        this.removeChangeListener<IGameBoardCoordinate>('cellWillBeRemoved', setCellWillBeRemoved)
+        this.removeChangeListener<boolean>('isAITurn', setIsAITurn)
+      }
+    },[setCurrentPlayer, setBoard, setOptions, setBoardState, setCellWillBeRemoved, setIsAITurn])
 
     return state
   }

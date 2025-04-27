@@ -7,13 +7,14 @@ const GameContext = createContext<IGameContext>(DEFAULT_CONTEXT_VALUE)
 
 export function GameProvider({ children }: React.PropsWithChildren) {
   const gameRef = useRef<Game>(new Game())
-
-  const currentPlayer = gameRef.current.useCurrentPlayer()
-  const boardMap = gameRef.current.useBoard()
-  const options = gameRef.current.useOptions()
-  const gameBoardState = gameRef.current.useGameBoardState()
-  const willBeRemovedFromBoard = gameRef.current.useCellWillBeRemoved()
-  const isAITurnLoading = gameRef.current.useIsAITurn()
+  const {
+    currentPlayer,
+    boardMap,
+    options,
+    gameState : gameBoardState,
+    cellWillBeRemoved: willBeRemovedFromBoard,
+    isAITurn: isAITurnLoading,
+  } = gameRef.current.useGameState()
 
 
   const value = useMemo<IGameContext>(() => ({
@@ -29,7 +30,7 @@ export function GameProvider({ children }: React.PropsWithChildren) {
     options,
     willBeRemovedFromBoard,
     isAITurnLoading,
-  }),[gameRef.current.currentPlayer, boardMap, gameBoardState, options, willBeRemovedFromBoard, isAITurnLoading])
+  }),[currentPlayer, boardMap, gameBoardState, options, willBeRemovedFromBoard, isAITurnLoading])
 
   return <GameContext.Provider value={value}>{children}</GameContext.Provider>
 }
