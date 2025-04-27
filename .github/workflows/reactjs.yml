@@ -44,7 +44,7 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
       - name: Build with Vite
-        run: npx --no-install vite build
+        run: npx --no-install vite build  --base="$BASE_PATH"
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
