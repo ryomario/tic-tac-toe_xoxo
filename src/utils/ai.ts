@@ -15,6 +15,8 @@ type IMinimaxOptions = {
   aiPlayer: IGamePlayer
   depth?: number
   maxDepth?: number
+  alpha: number
+  beta: number
 }
 
 export type AIWorkerMessages = {
@@ -67,7 +69,7 @@ export function calculateAIMove(state: IState, aiPlayer: IGamePlayer, maxDepth =
       stepHistory: nextStepHis,
       currentPlayer: getNextPlayer(state.currentPlayer),
       gameOptions: state.gameOptions,
-    }, {aiPlayer, depth: 1, maxDepth})
+    }, {aiPlayer, depth: 1, maxDepth, alpha: -Infinity, beta: Infinity})
 
     return act
   })
@@ -88,7 +90,7 @@ export function calculateAIMove(state: IState, aiPlayer: IGamePlayer, maxDepth =
   return null
 }
 
-function minimaxValue(state: IState, {aiPlayer, depth = 0, maxDepth = 5}: IMinimaxOptions) {
+function minimaxValue(state: IState, {aiPlayer, depth = 0, maxDepth = 5, alpha, beta}: IMinimaxOptions) {
   const board = getBoardFromStepHistory(state.stepHistory, state.gameOptions.boardSize)
   const boardState = checkGameBoardState(board)
   if(boardState.type == GameState.draw) return 0
@@ -99,27 +101,29 @@ function minimaxValue(state: IState, {aiPlayer, depth = 0, maxDepth = 5}: IMinim
     return 0
   } else {
     let score: number
-    if(state.currentPlayer != aiPlayer)score = -1000
-    else score = 1000
+    if(state.currentPlayer != aiPlayer)score = -Infinity
+    else score = Infinity
 
     const available = getEmptyBoardCells(board)
-    const availableStates = available.map(coordinate => {
+    for(const coordinate of available) {
       const nextStepHis = pushStepHistory(state.stepHistory, state.currentPlayer, coordinate, state.gameOptions)
-      return {
+      const nextState: IState = {
         stepHistory: nextStepHis,
         currentPlayer: getNextPlayer(state.currentPlayer),
         gameOptions: state.gameOptions,
-      } as IState
-    })
-
-    availableStates.forEach(nextState => {
-      const nextScore = minimaxValue(nextState, {aiPlayer, depth: depth + 1})
-      if(state.currentPlayer != aiPlayer) {
-        if(nextScore > score) score = nextScore
-      } else {
-        if(nextScore < score) score = nextScore
       }
-    })
+      const nextScore = minimaxValue(nextState, {aiPlayer, depth: depth + 1, alpha, beta})
+
+      if(state.currentPlayer != aiPlayer) {
+        score = Math.max(score, nextScore)
+        alpha = Math.max(alpha, score)
+      } else {
+        score = Math.min(score, nextScore)
+        beta = Math.min(beta, score)
+      }
+
+      if(beta <= alpha) break;
+    }
 
     return score
   }
